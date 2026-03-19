@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function DynamicGalleryGrid({ series, featuredOnly = false }) {
+export default function DynamicGalleryGrid({ series, featuredOnly = false, limit }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,6 +12,7 @@ export default function DynamicGalleryGrid({ series, featuredOnly = false }) {
     const params = new URLSearchParams();
     if (series) params.set('series', series);
     if (featuredOnly) params.set('featured', 'true');
+    if (limit) params.set('limit', limit.toString());
 
     fetch(`/api/gallery?${params}`)
       .then(res => res.json())

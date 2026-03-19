@@ -72,8 +72,8 @@ export default function Home() {
           <p className="section-subtitle">
             완성된 작품들을 감상해보세요
           </p>
+          <DynamicGalleryGrid limit={8} />
           <GalleryGrid items={featuredArtworks} />
-          <DynamicGalleryGrid featuredOnly />
         </div>
       </section>
 

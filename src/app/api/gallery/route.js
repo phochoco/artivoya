@@ -53,6 +53,12 @@ export async function GET(request) {
       filtered = items.filter(item => item.featured);
     }
 
+    // 개수 제한
+    const limit = searchParams.get('limit');
+    if (limit) {
+      filtered = filtered.slice(0, parseInt(limit));
+    }
+
     return NextResponse.json(filtered);
   } catch (error) {
     console.error('Gallery API error:', error);
