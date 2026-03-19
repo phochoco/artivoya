@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import SeriesCard from '@/components/SeriesCard';
 import GalleryGrid from '@/components/GalleryGrid';
+import DynamicGalleryGrid from '@/components/DynamicGalleryGrid';
 import VideoEmbed from '@/components/VideoEmbed';
 import { series, getSeriesBySlug } from '@/data/series';
 import { getGalleryBySeries } from '@/data/gallery';
@@ -59,6 +60,7 @@ export default async function SeriesPage({ params }) {
           <h2 className="section-title">채색 갤러리</h2>
           <p className="section-subtitle">{seriesData.tagline}</p>
           <GalleryGrid items={artworks} />
+          <DynamicGalleryGrid series={seriesData.id} />
         </div>
       </section>
 

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import SeriesCard from '@/components/SeriesCard';
 import GalleryGrid from '@/components/GalleryGrid';
+import DynamicGalleryGrid from '@/components/DynamicGalleryGrid';
 import VideoEmbed from '@/components/VideoEmbed';
 import { series } from '@/data/series';
 import { getFeaturedGallery } from '@/data/gallery';
@@ -72,6 +73,7 @@ export default function Home() {
             완성된 작품들을 감상해보세요
           </p>
           <GalleryGrid items={featuredArtworks} />
+          <DynamicGalleryGrid featuredOnly />
         </div>
       </section>
 
