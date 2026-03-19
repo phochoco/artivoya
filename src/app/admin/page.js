@@ -390,47 +390,25 @@ export default function AdminPage() {
               <h3 style={{ ...styles.sectionTitle, marginBottom: 0 }}>
                 {SERIES_LIST.find(s => s.id === selectedSeries)?.name} — {uploadType === 'thumbnail' ? '썸네일' : '갤러리'}
                 <span style={styles.count}>{blobs.length}개</span>
-                {galleryItems.filter(g => g.featured).length > 0 && (
-                  <span style={styles.featuredCount}>⭐ 대표 {galleryItems.filter(g => g.featured).length}개</span>
-                )}
               </h3>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => loadBlobs(false)} style={styles.cancelBtn}>🔄 새로고침</button>
-                <button onClick={() => loadBlobs(true)} style={styles.cancelBtn}>📦 전체 보기</button>
-              </div>
+              <button onClick={() => loadBlobs(false)} style={styles.cancelBtn}>🔄 새로고침</button>
             </div>
-            {debugInfo && (
-              <div style={{ padding: '0.5rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: 6, marginBottom: '1rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
-                prefix: &quot;{debugInfo.prefix}&quot; | 결과: {debugInfo.count}개
-                {debugInfo.error && <span style={{ color: '#ff6b6b' }}> | 에러: {debugInfo.error}</span>}
-                {debugInfo.debug && <span> | {debugInfo.debug}</span>}
-              </div>
-            )}
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem' }}>
+              💡 업로드된 이미지는 자동으로 갤러리 페이지에 표시됩니다
+            </p>
             <div style={styles.imageGrid}>
               {blobs.map((blob) => (
-                <div key={blob.url} style={{
-                  ...styles.imageCard,
-                  ...(isFeatured(blob.url) ? styles.imageCardFeatured : {}),
-                }}>
-                  {isFeatured(blob.url) && <div style={styles.featuredBadge}>⭐ 대표</div>}
+                <div key={blob.url} style={styles.imageCard}>
                   <div style={styles.imageWrapper}>
                     <img src={blob.url} alt={blob.pathname} style={styles.image} />
                   </div>
                   <div style={styles.imageInfo}>
-                    <p style={styles.imageName}>
-                      {galleryItems.find(g => g.image === blob.url)?.title || blob.pathname.split('/').pop()}
-                    </p>
+                    <p style={styles.imageName}>{blob.pathname.split('/').pop()}</p>
                     <p style={styles.imageSize}>{(blob.size / 1024).toFixed(1)} KB</p>
                   </div>
                   <div style={styles.imageActions}>
-                    <button
-                      onClick={() => handleToggleFeatured(blob.url)}
-                      style={isFeatured(blob.url) ? styles.featuredBtnActive : styles.featuredBtn}
-                    >
-                      {isFeatured(blob.url) ? '⭐ 대표 해제' : '☆ 대표 설정'}
-                    </button>
                     <button onClick={() => handleDelete(blob.url)} style={styles.deleteBtn}>
-                      🗑️
+                      🗑️ 삭제
                     </button>
                   </div>
                 </div>
