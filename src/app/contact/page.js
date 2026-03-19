@@ -1,3 +1,5 @@
+import FluentEmoji from '@/components/FluentEmoji';
+
 export const metadata = {
   title: 'Contact — 문의 및 협업',
   description: 'Artivoya에 대한 문의, 제휴, 라이선스, 협업 등 다양한 비즈니스 문의를 환영합니다.',
@@ -18,7 +20,7 @@ export default function ContactPage() {
 
             <div className="contact-channels">
               <div className="contact-channel">
-                <div className="contact-channel-icon">📧</div>
+                <div className="contact-channel-icon"><FluentEmoji emoji="📧" size={28} /></div>
                 <div>
                   <h4>이메일</h4>
                   <p>contact@artivoya.com</p>
@@ -32,7 +34,7 @@ export default function ContactPage() {
                 </div>
               </div>
               <div className="contact-channel">
-                <div className="contact-channel-icon">🛒</div>
+                <div className="contact-channel-icon"><FluentEmoji emoji="🛒" size={28} /></div>
                 <div>
                   <h4>쿠팡</h4>
                   <p>Artivoya 공식 스토어</p>

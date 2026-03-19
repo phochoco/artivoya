@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { series } from '@/data/series';
+import FluentEmoji from '@/components/FluentEmoji';
 
 export default function Footer() {
   return (
@@ -18,7 +19,7 @@ export default function Footer() {
           <h4>시리즈</h4>
           {series.map((s) => (
             <Link key={s.slug} href={`/${s.slug}`}>
-              {s.icon} {s.name}
+              <FluentEmoji emoji={s.icon} size={16} /> {s.name}
             </Link>
           ))}
         </div>

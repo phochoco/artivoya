@@ -1,4 +1,5 @@
 import { series } from '@/data/series';
+import FluentEmoji from '@/components/FluentEmoji';
 
 export const metadata = {
   title: 'About — 브랜드 스토리',
@@ -56,7 +57,7 @@ export default function AboutPage() {
                   fontSize: '4rem',
                 }}
               >
-                🎨
+                <FluentEmoji emoji="🎨" size={64} />
               </div>
             </div>
           </div>
@@ -72,7 +73,7 @@ export default function AboutPage() {
           </p>
           <div className="values-grid">
             <div className="value-card">
-              <div className="value-icon">✏️</div>
+              <div className="value-icon"><FluentEmoji emoji="✏️" size={36} /></div>
               <h3>정교한 디테일</h3>
               <p>
                 하나하나 정성 들여 그린 라인아트.
@@ -80,7 +81,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="value-card">
-              <div className="value-icon">🌍</div>
+              <div className="value-icon"><FluentEmoji emoji="🌍" size={36} /></div>
               <h3>다양한 세계관</h3>
               <p>
                 로봇부터 사파리까지, 매번 새로운 세계를
@@ -88,7 +89,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="value-card">
-              <div className="value-icon">🏆</div>
+              <div className="value-icon"><FluentEmoji emoji="🏆" size={36} /></div>
               <h3>완성의 감동</h3>
               <p>
                 도안이 아닌 "작품"을 만듭니다.
@@ -109,7 +110,7 @@ export default function AboutPage() {
           <div className="values-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
             {series.map((s) => (
               <div key={s.id} className="value-card">
-                <div className="value-icon">{s.icon}</div>
+                <div className="value-icon"><FluentEmoji emoji={s.icon} size={36} /></div>
                 <h3>{s.name}</h3>
                 <p>{s.tagline}</p>
               </div>

@@ -3,6 +3,7 @@ import SeriesCard from '@/components/SeriesCard';
 import GalleryGrid from '@/components/GalleryGrid';
 import DynamicGalleryGrid from '@/components/DynamicGalleryGrid';
 import VideoEmbed from '@/components/VideoEmbed';
+import FluentEmoji from '@/components/FluentEmoji';
 import { series } from '@/data/series';
 import { getFeaturedGallery } from '@/data/gallery';
 
@@ -22,7 +23,7 @@ export default function Home() {
 
         <div className="hero-content">
           <div className="hero-badge">
-            ✨ 프리미엄 컬러링북 브랜드
+            <FluentEmoji emoji="✨" size={20} /> 프리미엄 컬러링북 브랜드
           </div>
           <h1>
             단순한 선이

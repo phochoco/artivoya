@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import FluentEmoji from '@/components/FluentEmoji';
 
 export default function SeriesCard({ series }) {
   return (
@@ -16,7 +17,7 @@ export default function SeriesCard({ series }) {
       )}
       <div className="series-card-overlay" />
       <div className="series-card-content">
-        <div className="series-card-icon">{series.icon}</div>
+        <div className="series-card-icon"><FluentEmoji emoji={series.icon} size={40} /></div>
         <h3>{series.name}</h3>
         <p>{series.tagline}</p>
       </div>

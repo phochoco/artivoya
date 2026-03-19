@@ -3,6 +3,7 @@ import SeriesCard from '@/components/SeriesCard';
 import GalleryGrid from '@/components/GalleryGrid';
 import DynamicGalleryGrid from '@/components/DynamicGalleryGrid';
 import VideoEmbed from '@/components/VideoEmbed';
+import FluentEmoji from '@/components/FluentEmoji';
 import { series, getSeriesBySlug } from '@/data/series';
 import { getGalleryBySeries } from '@/data/gallery';
 import { notFound } from 'next/navigation';
@@ -48,7 +49,7 @@ export default async function SeriesPage({ params }) {
           style={{ background: seriesData.gradient }}
         />
         <div className="series-hero-content">
-          <div className="series-icon">{seriesData.icon}</div>
+          <div className="series-icon"><FluentEmoji emoji={seriesData.icon} size={56} /></div>
           <h1>{seriesData.name}</h1>
           <p>{seriesData.description}</p>
         </div>
