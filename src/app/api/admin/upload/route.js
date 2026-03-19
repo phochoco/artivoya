@@ -37,15 +37,30 @@ export async function POST(request) {
 export async function GET(request) {
   const isAdmin = await verifyAdmin();
   if (!isAdmin) {
-    return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+    return NextResponse.json({ error: '인증이 필요합니다.', blobs: [] }, { status: 401 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const prefix = searchParams.get('prefix') || '';
+  try {
+    const { searchParams } = new URL(request.url);
+    const prefix = searchParams.get('prefix') || '';
 
-  const { blobs } = await list({ prefix });
+    // 페이지네이션으로 전체 목록 로드
+    let allBlobs = [];
+    let cursor = undefined;
+    let hasMore = true;
 
-  return NextResponse.json({ blobs });
+    while (hasMore) {
+      const result = await list({ prefix, cursor, limit: 1000 });
+      allBlobs = allBlobs.concat(result.blobs);
+      cursor = result.cursor;
+      hasMore = result.hasMore;
+    }
+
+    return NextResponse.json({ blobs: allBlobs });
+  } catch (error) {
+    console.error('Blob list error:', error);
+    return NextResponse.json({ error: error.message, blobs: [] }, { status: 500 });
+  }
 }
 
 export async function DELETE(request) {

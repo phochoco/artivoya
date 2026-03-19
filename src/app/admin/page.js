@@ -53,7 +53,14 @@ export default function AdminPage() {
   const loadBlobs = useCallback(async () => {
     const prefix = uploadType === 'thumbnail' ? 'series/' : `gallery/${selectedSeries}/`;
     const res = await fetch(`/api/admin/upload?prefix=${prefix}`);
+    if (res.status === 401) {
+      setIsAuthenticated(false);
+      return;
+    }
     const data = await res.json();
+    if (data.error) {
+      console.error('Blob load error:', data.error);
+    }
     setBlobs(data.blobs || []);
   }, [selectedSeries, uploadType]);
 
