@@ -9,9 +9,9 @@ export default function GalleryGrid({ items }) {
         const itemSeries = getSeriesById(item.series);
         return (
           <Link key={item.id} href={`/gallery/${item.slug}`} className="gallery-item">
-            {itemSeries?.image ? (
+            {(item.image || itemSeries?.image) ? (
               <Image
-                src={itemSeries.image}
+                src={item.image || itemSeries.image}
                 alt={item.title}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 960px) 33vw, 280px"

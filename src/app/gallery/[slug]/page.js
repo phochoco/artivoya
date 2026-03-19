@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import GalleryGrid from '@/components/GalleryGrid';
 import { galleryItems, getGalleryBySlug, getGalleryBySeries } from '@/data/gallery';
 import { getSeriesById } from '@/data/series';
@@ -44,19 +45,29 @@ export default async function GalleryDetailPage({ params }) {
         <div className="artwork-detail-grid">
           {/* Image */}
           <div className="artwork-image-wrapper">
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                background: seriesData ? seriesData.gradient : '#ccc',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '6rem',
-              }}
-            >
-              {seriesData?.icon}
-            </div>
+            {artwork.image ? (
+              <Image
+                src={artwork.image}
+                alt={artwork.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                style={{ objectFit: 'contain', background: '#f8f8f8' }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  background: seriesData ? seriesData.gradient : '#ccc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '6rem',
+                }}
+              >
+                {seriesData?.icon}
+              </div>
+            )}
           </div>
 
           {/* Info */}
