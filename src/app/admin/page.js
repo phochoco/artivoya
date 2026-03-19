@@ -57,9 +57,20 @@ export default function AdminPage() {
     setBlobs(data.blobs || []);
   }, [selectedSeries, uploadType]);
 
+  const [galleryItems, setGalleryItems] = useState([]);
+
+  const loadGalleryItems = useCallback(async () => {
+    const res = await fetch(`/api/gallery?series=${selectedSeries}`);
+    const data = await res.json();
+    setGalleryItems(data);
+  }, [selectedSeries]);
+
   useEffect(() => {
-    if (isAuthenticated && activeTab === 'manage') loadBlobs();
-  }, [isAuthenticated, selectedSeries, uploadType, activeTab, loadBlobs]);
+    if (isAuthenticated && activeTab === 'manage') {
+      loadBlobs();
+      loadGalleryItems();
+    }
+  }, [isAuthenticated, selectedSeries, uploadType, activeTab, loadBlobs, loadGalleryItems]);
 
   // 파일 선택 → 미리보기 생성
   const handleFilesSelected = (files) => {
@@ -145,6 +156,52 @@ export default function AdminPage() {
       body: JSON.stringify({ url }),
     });
     loadBlobs();
+  };
+
+  // 대표이미지 토글
+  const handleToggleFeatured = async (blobUrl) => {
+    // 기존 갤러리 데이터에서 해당 이미지 찾기
+    const existing = galleryItems.find(item => item.image === blobUrl);
+    
+    if (existing) {
+      // 토글: featured 상태 변경
+      const updated = { ...existing, featured: !existing.featured };
+      await fetch('/api/admin/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } else {
+      // 갤러리 데이터에 없으면 새로 추가 (featured: true)
+      const filename = blobUrl.split('/').pop().replace(/\.[^/.]+$/, '');
+      const newItem = {
+        id: `${selectedSeries}-${filename}-${Date.now()}`,
+        slug: filename,
+        title: filename.replace(/[-_]/g, ' '),
+        titleEn: filename,
+        series: selectedSeries,
+        image: blobUrl,
+        description: '',
+        featured: true,
+      };
+      await fetch('/api/admin/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newItem),
+      });
+    }
+    loadGalleryItems();
+  };
+
+  // blob URL이 갤러리에서 featured인지 확인
+  const isFeatured = (blobUrl) => {
+    const item = galleryItems.find(g => g.image === blobUrl);
+    return item?.featured || false;
+  };
+
+  // blob URL이 갤러리에 등록되어 있는지 확인
+  const isInGallery = (blobUrl) => {
+    return galleryItems.some(g => g.image === blobUrl);
   };
 
   // 드래그 앤 드롭
@@ -274,7 +331,7 @@ export default function AdminPage() {
                       <label style={styles.checkboxLabel}>
                         <input type="checkbox" checked={item.featured}
                           onChange={(e) => updatePreviewItem(index, 'featured', e.target.checked)} />
-                        홈 갤러리에 표시 (추천 작품)
+                        ⭐ 홈 갤러리에 표시 (대표 작품)
                       </label>
                     </div>
                   </div>
@@ -322,20 +379,35 @@ export default function AdminPage() {
             <h3 style={styles.sectionTitle}>
               {SERIES_LIST.find(s => s.id === selectedSeries)?.name} — {uploadType === 'thumbnail' ? '썸네일' : '갤러리'}
               <span style={styles.count}>{blobs.length}개</span>
+              {galleryItems.filter(g => g.featured).length > 0 && (
+                <span style={styles.featuredCount}>⭐ 대표 {galleryItems.filter(g => g.featured).length}개</span>
+              )}
             </h3>
             <div style={styles.imageGrid}>
               {blobs.map((blob) => (
-                <div key={blob.url} style={styles.imageCard}>
+                <div key={blob.url} style={{
+                  ...styles.imageCard,
+                  ...(isFeatured(blob.url) ? styles.imageCardFeatured : {}),
+                }}>
+                  {isFeatured(blob.url) && <div style={styles.featuredBadge}>⭐ 대표</div>}
                   <div style={styles.imageWrapper}>
                     <img src={blob.url} alt={blob.pathname} style={styles.image} />
                   </div>
                   <div style={styles.imageInfo}>
-                    <p style={styles.imageName}>{blob.pathname.split('/').pop()}</p>
+                    <p style={styles.imageName}>
+                      {galleryItems.find(g => g.image === blob.url)?.title || blob.pathname.split('/').pop()}
+                    </p>
                     <p style={styles.imageSize}>{(blob.size / 1024).toFixed(1)} KB</p>
                   </div>
                   <div style={styles.imageActions}>
-                    <button onClick={() => handleDelete(blob.url)} style={styles.deleteBtn} title="삭제">
-                      🗑️ 삭제
+                    <button
+                      onClick={() => handleToggleFeatured(blob.url)}
+                      style={isFeatured(blob.url) ? styles.featuredBtnActive : styles.featuredBtn}
+                    >
+                      {isFeatured(blob.url) ? '⭐ 대표 해제' : '☆ 대표 설정'}
+                    </button>
+                    <button onClick={() => handleDelete(blob.url)} style={styles.deleteBtn}>
+                      🗑️
                     </button>
                   </div>
                 </div>
@@ -408,13 +480,18 @@ const styles = {
   sectionTitle: { fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' },
   count: { fontSize: '0.8rem', background: 'rgba(255,107,53,0.2)', color: '#FF6B35', padding: '0.2rem 0.6rem', borderRadius: 12 },
   imageGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' },
-  imageCard: { background: 'rgba(255,255,255,0.05)', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' },
+  imageCard: { position: 'relative', background: 'rgba(255,255,255,0.05)', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' },
   imageWrapper: { aspectRatio: '1', overflow: 'hidden', background: '#1a1a2e' },
   image: { width: '100%', height: '100%', objectFit: 'cover' },
   imageInfo: { padding: '0.6rem 0.8rem' },
   imageName: { fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   imageSize: { fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' },
-  imageActions: { padding: '0 0.8rem 0.6rem' },
-  deleteBtn: { width: '100%', padding: '0.5rem', background: 'rgba(255,107,107,0.15)', border: '1px solid rgba(255,107,107,0.3)', borderRadius: 6, cursor: 'pointer', fontSize: '0.85rem', color: '#ff6b6b' },
+  imageActions: { display: 'flex', gap: '0.4rem', padding: '0 0.8rem 0.6rem' },
+  featuredBtn: { flex: 1, padding: '0.5rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, cursor: 'pointer', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' },
+  featuredBtnActive: { flex: 1, padding: '0.5rem', background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.4)', borderRadius: 6, cursor: 'pointer', fontSize: '0.8rem', color: '#ffd700' },
+  deleteBtn: { padding: '0.5rem 0.7rem', background: 'rgba(255,107,107,0.15)', border: '1px solid rgba(255,107,107,0.3)', borderRadius: 6, cursor: 'pointer', fontSize: '0.85rem', color: '#ff6b6b' },
+  imageCardFeatured: { border: '2px solid rgba(255,215,0,0.5)', boxShadow: '0 0 12px rgba(255,215,0,0.15)' },
+  featuredBadge: { position: 'absolute', top: 8, left: 8, zIndex: 2, padding: '0.2rem 0.5rem', background: 'rgba(255,215,0,0.9)', borderRadius: 4, fontSize: '0.7rem', fontWeight: 700, color: '#1a1a2e' },
+  featuredCount: { fontSize: '0.8rem', background: 'rgba(255,215,0,0.2)', color: '#ffd700', padding: '0.2rem 0.6rem', borderRadius: 12 },
   empty: { gridColumn: '1 / -1', textAlign: 'center', color: 'rgba(255,255,255,0.3)', padding: '3rem' },
 };
