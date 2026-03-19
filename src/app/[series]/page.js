@@ -65,12 +65,12 @@ export default async function SeriesPage({ params }) {
       {/* Videos */}
       <section className="section" style={{ background: 'var(--color-bg-alt)' }}>
         <div className="container">
-          <h2 className="section-title">채색 영상</h2>
+          <h2 className="section-title">움직이는 컬러링</h2>
           <p className="section-subtitle">
-            {seriesData.name}의 채색 과정을 영상으로 만나보세요
+            {seriesData.name}의 채색 작품이 살아 움직입니다
           </p>
           <div className="video-grid">
-            <VideoEmbed videoId="dQw4w9WgXcQ" title={`${seriesData.name} 채색 과정`} />
+            <VideoEmbed videoId="dQw4w9WgXcQ" title={`${seriesData.name} 움직이는 컬러링`} />
           </div>
         </div>
       </section>

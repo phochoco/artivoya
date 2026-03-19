@@ -78,13 +78,13 @@ export default function Home() {
       {/* Video Section */}
       <section className="section">
         <div className="container">
-          <h2 className="section-title">채색 영상</h2>
+          <h2 className="section-title">움직이는 컬러링</h2>
           <p className="section-subtitle">
-            선이 작품으로 변하는 과정을 지켜보세요
+            채색한 작품이 살아 움직입니다. 나만의 캐릭터에 생명을 불어넣어 보세요
           </p>
           <div className="video-grid">
-            <VideoEmbed videoId="dQw4w9WgXcQ" title="Artivoya 채색 과정" />
-            <VideoEmbed videoId="dQw4w9WgXcQ" title="Artivoya 채색 팁" />
+            <VideoEmbed videoId="dQw4w9WgXcQ" title="Artivoya 움직이는 컬러링" />
+            <VideoEmbed videoId="dQw4w9WgXcQ" title="Artivoya 움직이는 캐릭터" />
           </div>
           <div style={{ textAlign: 'center', marginTop: 'var(--space-2xl)' }}>
             <a
