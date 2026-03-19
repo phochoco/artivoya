@@ -11,7 +11,7 @@ export const series = [
     primaryColor: '#2563EB',
     secondaryColor: '#DC2626',
     gradient: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 50%, #DC2626 100%)',
-    icon: '🤖',
+    icon: 'robot',
     image: '/images/series/robot.png',
   },
   {
@@ -26,7 +26,7 @@ export const series = [
     primaryColor: '#06B6D4',
     secondaryColor: '#0891B2',
     gradient: 'linear-gradient(135deg, #06B6D4 0%, #0E7490 50%, #164E63 100%)',
-    icon: '🐠',
+    icon: 'fish',
     image: '/images/series/aquarium.png',
   },
   {
@@ -41,7 +41,7 @@ export const series = [
     primaryColor: '#EC4899',
     secondaryColor: '#8B5CF6',
     gradient: 'linear-gradient(135deg, #EC4899 0%, #A855F7 50%, #8B5CF6 100%)',
-    icon: '🧚',
+    icon: 'fairy',
     image: '/images/series/idol-fairy.png',
   },
   {
@@ -56,7 +56,7 @@ export const series = [
     primaryColor: '#EAB308',
     secondaryColor: '#16A34A',
     gradient: 'linear-gradient(135deg, #EAB308 0%, #65A30D 50%, #16A34A 100%)',
-    icon: '🦁',
+    icon: 'lion',
     image: '/images/series/safari.png',
   },
 ];

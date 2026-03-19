@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getSeriesById } from '@/data/series';
+import FluentEmoji from '@/components/FluentEmoji';
 
 export default function GalleryGrid({ items }) {
   return (
@@ -33,7 +34,7 @@ export default function GalleryGrid({ items }) {
                   height: '100%',
                 }}
               >
-                {itemSeries?.icon}
+                <FluentEmoji name={itemSeries?.icon} size={48} />
               </div>
             )}
             <div className="gallery-item-overlay">

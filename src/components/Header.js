@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { series } from '@/data/series';
+import FluentEmoji from '@/components/FluentEmoji';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,7 +42,7 @@ export default function Header() {
       <nav className={`mobile-nav ${mobileOpen ? 'active' : ''}`}>
         {series.map((s) => (
           <Link key={s.slug} href={`/${s.slug}`} onClick={closeMobile}>
-            {s.icon} {s.name}
+            <FluentEmoji name={s.icon} size={18} /> {s.name}
           </Link>
         ))}
         <Link href="/about" onClick={closeMobile}>About</Link>
