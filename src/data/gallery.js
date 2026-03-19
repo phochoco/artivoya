@@ -180,6 +180,16 @@ export const galleryItems = [
     description: '폭풍을 일으키는 기상형 메카 로봇. 번개 패턴과 바람의 디테일을 채색해보세요.',
     featured: false,
   },
+  {
+    id: 'robot-yyy-xeno',
+    slug: 'yyy-xeno',
+    title: 'YYY-제노',
+    titleEn: 'YYY-Xeno',
+    series: 'robot',
+    image: '/images/gallery/robot/yyy-xeno.png',
+    description: '무지개빛 에너지로 빛나는 합체형 슈퍼 메카 로봇. 다채로운 컬러의 향연을 감상해보세요.',
+    featured: true,
+  },
 
   // Aquarium Series
   {
