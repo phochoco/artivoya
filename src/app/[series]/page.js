@@ -70,7 +70,8 @@ export default async function SeriesPage({ params }) {
             {seriesData.name}의 채색 작품이 살아 움직입니다
           </p>
           <div className="video-grid">
-            <VideoEmbed videoId="dQw4w9WgXcQ" title={`${seriesData.name} 움직이는 컬러링`} />
+            <VideoEmbed videoId="K9FozMS5uxE" title="타이탄너클 움직이는 컬러링" isShorts />
+            <VideoEmbed videoId="aMn2o675cK8" title="다이노팡 움직이는 컬러링" isShorts />
           </div>
         </div>
       </section>

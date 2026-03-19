@@ -83,8 +83,8 @@ export default function Home() {
             채색한 작품이 살아 움직입니다. 나만의 캐릭터에 생명을 불어넣어 보세요
           </p>
           <div className="video-grid">
-            <VideoEmbed videoId="dQw4w9WgXcQ" title="Artivoya 움직이는 컬러링" />
-            <VideoEmbed videoId="dQw4w9WgXcQ" title="Artivoya 움직이는 캐릭터" />
+            <VideoEmbed videoId="K9FozMS5uxE" title="타이탄너클 움직이는 컬러링" isShorts />
+            <VideoEmbed videoId="aMn2o675cK8" title="다이노팡 움직이는 컬러링" isShorts />
           </div>
           <div style={{ textAlign: 'center', marginTop: 'var(--space-2xl)' }}>
             <a
