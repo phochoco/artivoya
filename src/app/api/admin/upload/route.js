@@ -44,22 +44,30 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const prefix = searchParams.get('prefix') || '';
 
-    // 페이지네이션으로 전체 목록 로드
+    // 전체 목록 로드 (prefix 문제 디버깅)
     let allBlobs = [];
     let cursor = undefined;
     let hasMore = true;
 
     while (hasMore) {
-      const result = await list({ prefix, cursor, limit: 1000 });
+      const opts = { limit: 1000 };
+      if (prefix) opts.prefix = prefix;
+      if (cursor) opts.cursor = cursor;
+      const result = await list(opts);
       allBlobs = allBlobs.concat(result.blobs);
       cursor = result.cursor;
       hasMore = result.hasMore;
     }
 
-    return NextResponse.json({ blobs: allBlobs });
+    return NextResponse.json({ 
+      blobs: allBlobs, 
+      count: allBlobs.length,
+      prefix,
+      debug: allBlobs.length === 0 ? 'No blobs found with this prefix' : null,
+    });
   } catch (error) {
     console.error('Blob list error:', error);
-    return NextResponse.json({ error: error.message, blobs: [] }, { status: 500 });
+    return NextResponse.json({ error: error.message, blobs: [], stack: error.stack }, { status: 500 });
   }
 }
 

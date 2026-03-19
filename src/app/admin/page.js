@@ -50,14 +50,17 @@ export default function AdminPage() {
     setIsAuthenticated(false);
   };
 
-  const loadBlobs = useCallback(async () => {
-    const prefix = uploadType === 'thumbnail' ? 'series/' : `gallery/${selectedSeries}/`;
+  const [debugInfo, setDebugInfo] = useState(null);
+
+  const loadBlobs = useCallback(async (showAll = false) => {
+    const prefix = showAll ? '' : (uploadType === 'thumbnail' ? 'series/' : `gallery/${selectedSeries}/`);
     const res = await fetch(`/api/admin/upload?prefix=${prefix}`);
     if (res.status === 401) {
       setIsAuthenticated(false);
       return;
     }
     const data = await res.json();
+    setDebugInfo({ count: data.count, prefix: data.prefix, error: data.error, debug: data.debug });
     if (data.error) {
       console.error('Blob load error:', data.error);
     }
@@ -383,13 +386,26 @@ export default function AdminPage() {
         {/* ===== 관리 탭 ===== */}
         {activeTab === 'manage' && (
           <div>
-            <h3 style={styles.sectionTitle}>
-              {SERIES_LIST.find(s => s.id === selectedSeries)?.name} — {uploadType === 'thumbnail' ? '썸네일' : '갤러리'}
-              <span style={styles.count}>{blobs.length}개</span>
-              {galleryItems.filter(g => g.featured).length > 0 && (
-                <span style={styles.featuredCount}>⭐ 대표 {galleryItems.filter(g => g.featured).length}개</span>
-              )}
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <h3 style={{ ...styles.sectionTitle, marginBottom: 0 }}>
+                {SERIES_LIST.find(s => s.id === selectedSeries)?.name} — {uploadType === 'thumbnail' ? '썸네일' : '갤러리'}
+                <span style={styles.count}>{blobs.length}개</span>
+                {galleryItems.filter(g => g.featured).length > 0 && (
+                  <span style={styles.featuredCount}>⭐ 대표 {galleryItems.filter(g => g.featured).length}개</span>
+                )}
+              </h3>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => loadBlobs(false)} style={styles.cancelBtn}>🔄 새로고침</button>
+                <button onClick={() => loadBlobs(true)} style={styles.cancelBtn}>📦 전체 보기</button>
+              </div>
+            </div>
+            {debugInfo && (
+              <div style={{ padding: '0.5rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: 6, marginBottom: '1rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+                prefix: &quot;{debugInfo.prefix}&quot; | 결과: {debugInfo.count}개
+                {debugInfo.error && <span style={{ color: '#ff6b6b' }}> | 에러: {debugInfo.error}</span>}
+                {debugInfo.debug && <span> | {debugInfo.debug}</span>}
+              </div>
+            )}
             <div style={styles.imageGrid}>
               {blobs.map((blob) => (
                 <div key={blob.url} style={{
