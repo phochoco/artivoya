@@ -113,16 +113,27 @@ export default function AdminPage() {
     if (!videoId) { alert('올바른 YouTube URL을 입력하세요'); return; }
     if (!newVideoTitle) { alert('영상 제목을 입력하세요'); return; }
     setVideoSaving(true);
-    await fetch('/api/admin/videos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        videoId,
-        title: newVideoTitle,
-        series: selectedSeries,
-        isShorts: newVideoIsShorts,
-      }),
-    });
+    try {
+      const res = await fetch('/api/admin/videos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId,
+          title: newVideoTitle,
+          series: selectedSeries,
+          isShorts: newVideoIsShorts,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert('저장 실패: ' + (data.error || '알 수 없는 오류'));
+        console.error('Video save error:', data);
+      } else {
+        console.log('Video saved:', data);
+      }
+    } catch (e) {
+      alert('네트워크 오류: ' + e.message);
+    }
     setNewVideoUrl('');
     setNewVideoTitle('');
     setVideoSaving(false);

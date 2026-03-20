@@ -1,42 +1,44 @@
 import { put, list } from '@vercel/blob';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { verifyAdmin } from '@/lib/auth';
 
 const BLOB_PATH = 'config/videos.json';
 
-function isAuthenticated() {
-  const cookieStore = cookies();
-  return cookieStore.get('admin_auth')?.value === 'true';
-}
-
-// 비디오 목록 가져오기
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const series = searchParams.get('series'); // optional filter
-
+// Blob에서 videos.json 로드
+async function loadVideos() {
   try {
-    // videos.json 찾기
-    const { blobs } = await list({ prefix: BLOB_PATH });
+    const { blobs } = await list({ prefix: 'config/' });
+    const videoBlob = blobs.find(b => b.pathname === BLOB_PATH || b.pathname.includes('videos.json'));
     
-    if (blobs.length === 0) {
-      return NextResponse.json([]);
+    if (!videoBlob) {
+      return [];
     }
 
-    const res = await fetch(blobs[0].url);
+    const res = await fetch(videoBlob.url, { cache: 'no-store' });
     const videos = await res.json();
-
-    if (series) {
-      return NextResponse.json(videos.filter(v => v.series === series));
-    }
-    return NextResponse.json(videos);
+    return videos;
   } catch (e) {
-    return NextResponse.json([]);
+    return [];
   }
 }
 
-// 비디오 추가/수정
+// 비디오 목록 가져오기 (GET)
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const series = searchParams.get('series');
+
+  const videos = await loadVideos();
+
+  if (series) {
+    return NextResponse.json(videos.filter(v => v.series === series));
+  }
+  return NextResponse.json(videos);
+}
+
+// 비디오 추가 (POST)
 export async function POST(request) {
-  if (!isAuthenticated()) {
+  const isAdmin = await verifyAdmin();
+  if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -48,15 +50,8 @@ export async function POST(request) {
   }
 
   try {
-    // 기존 데이터 로드
-    let videos = [];
-    const { blobs } = await list({ prefix: BLOB_PATH });
-    if (blobs.length > 0) {
-      const res = await fetch(blobs[0].url);
-      videos = await res.json();
-    }
+    const videos = await loadVideos();
 
-    // 새 비디오 추가
     const newVideo = {
       id: `video-${Date.now()}`,
       videoId,
@@ -67,35 +62,29 @@ export async function POST(request) {
     };
     videos.push(newVideo);
 
-    // 저장
     await put(BLOB_PATH, JSON.stringify(videos, null, 2), {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
     });
 
-    return NextResponse.json(newVideo);
+    return NextResponse.json({ success: true, video: newVideo });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
 
-// 비디오 삭제
+// 비디오 삭제 (DELETE)
 export async function DELETE(request) {
-  if (!isAuthenticated()) {
+  const isAdmin = await verifyAdmin();
+  if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id } = await request.json();
 
   try {
-    let videos = [];
-    const { blobs } = await list({ prefix: BLOB_PATH });
-    if (blobs.length > 0) {
-      const res = await fetch(blobs[0].url);
-      videos = await res.json();
-    }
-
+    let videos = await loadVideos();
     videos = videos.filter(v => v.id !== id);
 
     await put(BLOB_PATH, JSON.stringify(videos, null, 2), {
