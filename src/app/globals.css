@@ -699,9 +699,10 @@ p {
 
 /* --- Video Section --- */
 .video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-xl);
+  justify-content: center;
 }
 
 .video-card {
@@ -722,6 +723,7 @@ p {
   padding-bottom: 56.25%;
   height: 0;
   overflow: hidden;
+  border-radius: var(--radius-lg);
 }
 .video-embed iframe {
   position: absolute;
@@ -733,9 +735,9 @@ p {
 }
 .video-embed-shorts {
   padding-bottom: 177.78%;
-  max-width: 320px;
+  width: 280px;
+  max-width: 100%;
   margin: 0 auto;
-  border-radius: var(--radius-lg);
 }
 
 /* --- Series Detail Page --- */
