@@ -5,7 +5,7 @@ import FluentEmoji from '@/components/FluentEmoji';
 import { galleryItems, getGalleryBySlug, getGalleryBySeries } from '@/data/gallery';
 import { getSeriesById } from '@/data/series';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
+import { list } from '@vercel/blob';
 
 export const dynamicParams = true;
 
@@ -15,16 +15,52 @@ export async function generateStaticParams() {
   }));
 }
 
-// Blob API에서 동적 갤러리 아이템 조회
+// Blob 스토리지에서 직접 동적 갤러리 아이템 조회
 async function getDynamicArtwork(slug) {
   try {
-    const headersList = await headers();
-    const host = headersList.get('host') || 'localhost:3000';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const res = await fetch(`${protocol}://${host}/api/gallery`, { cache: 'no-store' });
-    const items = await res.json();
-    return items.find(item => item.slug === slug) || null;
-  } catch {
+    const decodedSlug = decodeURIComponent(slug);
+    
+    // gallery/ prefix로 모든 blob 이미지 검색
+    let allBlobs = [];
+    let cursor = undefined;
+    let hasMore = true;
+
+    while (hasMore) {
+      const opts = { limit: 1000, prefix: 'gallery/' };
+      if (cursor) opts.cursor = cursor;
+      const result = await list(opts);
+      allBlobs = allBlobs.concat(result.blobs);
+      cursor = result.cursor;
+      hasMore = result.hasMore;
+    }
+
+    // 파일명에서 slug 매칭
+    const matchedBlob = allBlobs
+      .filter(blob => blob.pathname.match(/\.(png|jpg|jpeg|webp)$/i))
+      .find(blob => {
+        const filename = blob.pathname.split('/').pop();
+        const blobSlug = filename.replace(/\.[^/.]+$/, '');
+        return blobSlug === decodedSlug || encodeURIComponent(blobSlug) === slug;
+      });
+
+    if (!matchedBlob) return null;
+
+    const parts = matchedBlob.pathname.split('/');
+    const filename = parts[parts.length - 1];
+    const blobSeries = parts.length >= 3 ? parts[1] : 'unknown';
+    const title = filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+
+    return {
+      id: `blob-${blobSeries}-${filename}`,
+      slug: filename.replace(/\.[^/.]+$/, ''),
+      title,
+      titleEn: title,
+      series: blobSeries,
+      image: matchedBlob.url,
+      description: '',
+    };
+  } catch (e) {
+    console.error('getDynamicArtwork error:', e);
     return null;
   }
 }
@@ -50,7 +86,6 @@ export default async function GalleryDetailPage({ params }) {
   let artwork = getGalleryBySlug(slug);
   let isDynamic = false;
 
-  // 정적 데이터에 없으면 Blob에서 동적 조회
   if (!artwork) {
     artwork = await getDynamicArtwork(slug);
     isDynamic = true;
@@ -62,7 +97,6 @@ export default async function GalleryDetailPage({ params }) {
 
   const seriesData = getSeriesById(artwork.series);
   
-  // 관련 작품: 정적 데이터에서만
   const relatedArtworks = isDynamic 
     ? [] 
     : getGalleryBySeries(artwork.series).filter((item) => item.id !== artwork.id);
