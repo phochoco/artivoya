@@ -2,7 +2,7 @@ import Link from 'next/link';
 import SeriesCard from '@/components/SeriesCard';
 import GalleryGrid from '@/components/GalleryGrid';
 import DynamicGalleryGrid from '@/components/DynamicGalleryGrid';
-import VideoEmbed from '@/components/VideoEmbed';
+import DynamicVideoGrid from '@/components/DynamicVideoGrid';
 import FluentEmoji from '@/components/FluentEmoji';
 import { series } from '@/data/series';
 import { getFeaturedGallery } from '@/data/gallery';
@@ -85,10 +85,7 @@ export default function Home() {
           <p className="section-subtitle">
             채색한 작품이 살아 움직입니다. 나만의 캐릭터에 생명을 불어넣어 보세요
           </p>
-          <div className="video-grid">
-            <VideoEmbed videoId="K9FozMS5uxE" title="타이탄너클 움직이는 컬러링" isShorts />
-            <VideoEmbed videoId="aMn2o675cK8" title="다이노팡 움직이는 컬러링" isShorts />
-          </div>
+          <DynamicVideoGrid limit={4} />
           <div style={{ textAlign: 'center', marginTop: 'var(--space-2xl)' }}>
             <a
               href="https://www.youtube.com/channel/UC063pY3PTB8q8FewhATKtPw"

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import SeriesCard from '@/components/SeriesCard';
 import GalleryGrid from '@/components/GalleryGrid';
 import DynamicGalleryGrid from '@/components/DynamicGalleryGrid';
-import VideoEmbed from '@/components/VideoEmbed';
+import DynamicVideoGrid from '@/components/DynamicVideoGrid';
 import FluentEmoji from '@/components/FluentEmoji';
 import { series, getSeriesBySlug } from '@/data/series';
 import { getGalleryBySeries } from '@/data/gallery';
@@ -72,10 +72,7 @@ export default async function SeriesPage({ params }) {
           <p className="section-subtitle">
             {seriesData.name}의 채색 작품이 살아 움직입니다
           </p>
-          <div className="video-grid">
-            <VideoEmbed videoId="K9FozMS5uxE" title="타이탄너클 움직이는 컬러링" isShorts />
-            <VideoEmbed videoId="aMn2o675cK8" title="다이노팡 움직이는 컬러링" isShorts />
-          </div>
+          <DynamicVideoGrid series={seriesData.id} />
         </div>
       </section>
 

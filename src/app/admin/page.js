@@ -26,6 +26,13 @@ export default function AdminPage() {
   const [uploadStep, setUploadStep] = useState('select'); // 'select' | 'info' | 'done'
   const [uploadResults, setUploadResults] = useState([]);
 
+  // 동영상 관리
+  const [videos, setVideos] = useState([]);
+  const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [newVideoTitle, setNewVideoTitle] = useState('');
+  const [newVideoIsShorts, setNewVideoIsShorts] = useState(true);
+  const [videoSaving, setVideoSaving] = useState(false);
+
   useEffect(() => {
     fetch('/api/admin/check')
       .then(res => res.json())
@@ -75,12 +82,73 @@ export default function AdminPage() {
     setGalleryItems(data);
   }, [selectedSeries]);
 
+  // 동영상 목록 로드
+  const loadVideos = useCallback(async () => {
+    const res = await fetch(`/api/admin/videos?series=${selectedSeries}`);
+    if (res.ok) {
+      const data = await res.json();
+      setVideos(data);
+    }
+  }, [selectedSeries]);
+
+  // YouTube URL → videoId 추출
+  const extractVideoId = (url) => {
+    const patterns = [
+      /(?:youtube\.com\/shorts\/|youtu\.be\/)([\w-]+)/,
+      /(?:youtube\.com\/watch\?v=)([\w-]+)/,
+      /(?:youtube\.com\/embed\/)([\w-]+)/,
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    // 그냥 videoId만 입력한 경우
+    if (/^[\w-]{11}$/.test(url)) return url;
+    return null;
+  };
+
+  // 동영상 추가
+  const handleAddVideo = async () => {
+    const videoId = extractVideoId(newVideoUrl);
+    if (!videoId) { alert('올바른 YouTube URL을 입력하세요'); return; }
+    if (!newVideoTitle) { alert('영상 제목을 입력하세요'); return; }
+    setVideoSaving(true);
+    await fetch('/api/admin/videos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        videoId,
+        title: newVideoTitle,
+        series: selectedSeries,
+        isShorts: newVideoIsShorts,
+      }),
+    });
+    setNewVideoUrl('');
+    setNewVideoTitle('');
+    setVideoSaving(false);
+    loadVideos();
+  };
+
+  // 동영상 삭제
+  const handleDeleteVideo = async (id) => {
+    if (!confirm('이 영상을 삭제하시겠습니까?')) return;
+    await fetch('/api/admin/videos', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    loadVideos();
+  };
+
   useEffect(() => {
     if (isAuthenticated && activeTab === 'manage') {
       loadBlobs();
       loadGalleryItems();
     }
-  }, [isAuthenticated, selectedSeries, uploadType, activeTab, loadBlobs, loadGalleryItems]);
+    if (isAuthenticated && activeTab === 'videos') {
+      loadVideos();
+    }
+  }, [isAuthenticated, selectedSeries, uploadType, activeTab, loadBlobs, loadGalleryItems, loadVideos]);
 
   // 파일 선택 → 미리보기 생성
   const handleFilesSelected = (files) => {
@@ -264,6 +332,10 @@ export default function AdminPage() {
           style={{ ...styles.tab, ...(activeTab === 'manage' ? styles.tabActive : {}) }}>
           🖼️ 이미지 관리
         </button>
+        <button onClick={() => setActiveTab('videos')}
+          style={{ ...styles.tab, ...(activeTab === 'videos' ? styles.tabActive : {}) }}>
+          🎬 영상 관리
+        </button>
       </div>
 
       <div style={styles.content}>
@@ -414,6 +486,91 @@ export default function AdminPage() {
                 </div>
               ))}
               {blobs.length === 0 && <p style={styles.empty}>업로드된 이미지가 없습니다.</p>}
+            </div>
+          </div>
+        )}
+
+        {/* ===== 영상 관리 탭 ===== */}
+        {activeTab === 'videos' && (
+          <div>
+            <h3 style={{ ...styles.sectionTitle, marginBottom: '1.5rem' }}>
+              {SERIES_LIST.find(s => s.id === selectedSeries)?.name} — 영상
+              <span style={styles.count}>{videos.length}개</span>
+            </h3>
+
+            {/* 영상 추가 폼 */}
+            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '1.5rem', marginBottom: '2rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>➕ 영상 추가</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                <input
+                  placeholder="YouTube URL (ex: https://youtube.com/shorts/xxxxx 또는 영상ID)"
+                  value={newVideoUrl}
+                  onChange={(e) => setNewVideoUrl(e.target.value)}
+                  style={styles.formInput}
+                />
+                <input
+                  placeholder="영상 제목"
+                  value={newVideoTitle}
+                  onChange={(e) => setNewVideoTitle(e.target.value)}
+                  style={styles.formInput}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <label style={styles.checkboxLabel}>
+                    <input type="checkbox" checked={newVideoIsShorts}
+                      onChange={(e) => setNewVideoIsShorts(e.target.checked)} />
+                    Shorts (세로 영상)
+                  </label>
+                  <button
+                    onClick={handleAddVideo}
+                    disabled={videoSaving || !newVideoUrl || !newVideoTitle}
+                    style={{ ...styles.uploadBtn, opacity: (videoSaving || !newVideoUrl || !newVideoTitle) ? 0.5 : 1 }}
+                  >
+                    {videoSaving ? '저장 중...' : '추가'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 영상 미리보기 프리뷰 */}
+            {newVideoUrl && extractVideoId(newVideoUrl) && (
+              <div style={{ marginBottom: '1.5rem', maxWidth: 320 }}>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>미리보기</p>
+                <div style={{ position: 'relative', paddingBottom: newVideoIsShorts ? '177%' : '56.25%', borderRadius: 12, overflow: 'hidden', background: '#000' }}>
+                  <iframe
+                    src={`https://www.youtube.com/embed/${extractVideoId(newVideoUrl)}`}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                    title="preview"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 등록된 영상 목록 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+              {videos.map(video => (
+                <div key={video.id} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ position: 'relative', paddingBottom: video.isShorts ? '177%' : '56.25%', background: '#000' }}>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${video.videoId}`}
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                      title={video.title}
+                      loading="lazy"
+                    />
+                  </div>
+                  <div style={{ padding: '0.8rem' }}>
+                    <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.3rem' }}>{video.title}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+                      {video.isShorts ? 'Shorts' : '일반'} · {video.videoId}
+                    </p>
+                  </div>
+                  <div style={{ padding: '0 0.8rem 0.8rem' }}>
+                    <button onClick={() => handleDeleteVideo(video.id)} style={styles.deleteBtn}>🗑️ 삭제</button>
+                  </div>
+                </div>
+              ))}
+              {videos.length === 0 && <p style={styles.empty}>등록된 영상이 없습니다. 위에서 YouTube URL을 추가하세요.</p>}
             </div>
           </div>
         )}
