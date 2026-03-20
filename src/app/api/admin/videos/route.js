@@ -66,6 +66,7 @@ export async function POST(request) {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
+      allowOverwrite: true,
     });
 
     return NextResponse.json({ success: true, video: newVideo });
@@ -91,6 +92,7 @@ export async function DELETE(request) {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
+      allowOverwrite: true,
     });
 
     return NextResponse.json({ success: true });
