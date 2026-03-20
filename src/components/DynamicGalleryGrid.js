@@ -37,7 +37,7 @@ export default function DynamicGalleryGrid({ series, featuredOnly = false, limit
       {items.map((item) => (
         <Link
           key={item.id}
-          href={`/gallery/${item.slug}`}
+          href={`/gallery/view?slug=${encodeURIComponent(item.slug)}`}
           className="gallery-item"
           style={{ display: 'block', textDecoration: 'none' }}
         >

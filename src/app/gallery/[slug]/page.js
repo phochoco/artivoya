@@ -5,9 +5,6 @@ import FluentEmoji from '@/components/FluentEmoji';
 import { galleryItems, getGalleryBySlug, getGalleryBySeries } from '@/data/gallery';
 import { getSeriesById } from '@/data/series';
 import { notFound } from 'next/navigation';
-import DynamicArtworkDetail from '@/components/DynamicArtworkDetail';
-
-export const dynamicParams = true;
 
 export async function generateStaticParams() {
   return galleryItems.map((item) => ({
@@ -18,9 +15,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const artwork = getGalleryBySlug(slug);
-  if (!artwork) {
-    return { title: 'Artivoya Gallery' };
-  }
+  if (!artwork) return { title: 'Artivoya Gallery' };
 
   return {
     title: artwork.title,
@@ -36,9 +31,8 @@ export default async function GalleryDetailPage({ params }) {
   const { slug } = await params;
   const artwork = getGalleryBySlug(slug);
 
-  // 정적 데이터에 없으면 → 클라이언트 컴포넌트로 동적 조회
   if (!artwork) {
-    return <DynamicArtworkDetail slug={slug} />;
+    notFound();
   }
 
   const seriesData = getSeriesById(artwork.series);
@@ -50,7 +44,6 @@ export default async function GalleryDetailPage({ params }) {
     <div className="artwork-detail">
       <div className="container">
         <div className="artwork-detail-grid">
-          {/* Image */}
           <div className="artwork-image-wrapper">
             {artwork.image ? (
               <Image
@@ -77,7 +70,6 @@ export default async function GalleryDetailPage({ params }) {
             )}
           </div>
 
-          {/* Info */}
           <div className="artwork-info">
             {seriesData && (
               <Link
@@ -114,7 +106,6 @@ export default async function GalleryDetailPage({ params }) {
           </div>
         </div>
 
-        {/* Related */}
         {relatedArtworks.length > 0 && (
           <div className="related-series">
             <h2 className="section-title">같은 시리즈의 다른 작품</h2>
