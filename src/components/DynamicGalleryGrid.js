@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export default function DynamicGalleryGrid({ series, featuredOnly = false, limit }) {
@@ -21,7 +20,7 @@ export default function DynamicGalleryGrid({ series, featuredOnly = false, limit
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [series, featuredOnly]);
+  }, [series, featuredOnly, limit]);
 
   if (loading) {
     return (
@@ -36,7 +35,12 @@ export default function DynamicGalleryGrid({ series, featuredOnly = false, limit
   return (
     <div className="gallery-grid">
       {items.map((item) => (
-        <div key={item.id} className="gallery-item">
+        <Link
+          key={item.id}
+          href={`/gallery/${item.slug}`}
+          className="gallery-item"
+          style={{ display: 'block', textDecoration: 'none' }}
+        >
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             {item.image ? (
               <img
@@ -61,7 +65,7 @@ export default function DynamicGalleryGrid({ series, featuredOnly = false, limit
               {item.titleEn && <p>{item.titleEn}</p>}
             </div>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );

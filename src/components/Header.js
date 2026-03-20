@@ -39,16 +39,33 @@ export default function Header() {
         </button>
       </div>
 
-      <nav className={`mobile-nav ${mobileOpen ? 'active' : ''}`}>
-        {series.map((s) => (
-          <Link key={s.slug} href={`/${s.slug}`} onClick={closeMobile}>
-            <FluentEmoji name={s.icon} size={18} /> {s.name}
-          </Link>
-        ))}
-        <Link href="/about" onClick={closeMobile}>About</Link>
-        <Link href="/contact" onClick={closeMobile}>Contact</Link>
-        <Link href="/faq" onClick={closeMobile}>FAQ</Link>
-      </nav>
+      {mobileOpen && (
+        <nav className="mobile-nav active">
+          <button
+            className="mobile-nav-close"
+            onClick={closeMobile}
+            aria-label="닫기"
+          >
+            ✕
+          </button>
+
+          <div className="mobile-nav-section">
+            <span className="mobile-nav-label">시리즈</span>
+            {series.map((s) => (
+              <Link key={s.slug} href={`/${s.slug}`} onClick={closeMobile}>
+                <FluentEmoji name={s.icon} size={20} /> {s.name}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mobile-nav-section">
+            <span className="mobile-nav-label">정보</span>
+            <Link href="/about" onClick={closeMobile}>About</Link>
+            <Link href="/contact" onClick={closeMobile}>Contact</Link>
+            <Link href="/faq" onClick={closeMobile}>FAQ</Link>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

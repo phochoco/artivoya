@@ -299,28 +299,58 @@ p {
 }
 
 .mobile-nav {
-  display: none;
+  display: flex;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(250, 250, 250, 0.98);
-  backdrop-filter: blur(20px);
+  background: #ffffff;
   z-index: 105;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xl);
+  gap: var(--space-2xl);
+  overflow-y: auto;
+  padding: var(--space-3xl) var(--space-xl);
 }
-.mobile-nav.active {
+.mobile-nav-close {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--color-bg-alt);
+  border-radius: 50%;
+  font-size: 1.2rem;
+  color: var(--color-text);
+  cursor: pointer;
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-nav-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+}
+.mobile-nav-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(0,0,0,0.35);
 }
 .mobile-nav a {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: var(--color-text);
   transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 .mobile-nav a:hover {
   color: var(--color-accent);

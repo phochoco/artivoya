@@ -5,6 +5,9 @@ import FluentEmoji from '@/components/FluentEmoji';
 import { galleryItems, getGalleryBySlug, getGalleryBySeries } from '@/data/gallery';
 import { getSeriesById } from '@/data/series';
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
+
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   return galleryItems.map((item) => ({
@@ -12,33 +15,57 @@ export async function generateStaticParams() {
   }));
 }
 
+// Blob API에서 동적 갤러리 아이템 조회
+async function getDynamicArtwork(slug) {
+  try {
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const res = await fetch(`${protocol}://${host}/api/gallery`, { cache: 'no-store' });
+    const items = await res.json();
+    return items.find(item => item.slug === slug) || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const artwork = getGalleryBySlug(slug);
+  let artwork = getGalleryBySlug(slug);
+  if (!artwork) artwork = await getDynamicArtwork(slug);
   if (!artwork) return {};
 
   return {
     title: artwork.title,
-    description: artwork.description,
+    description: artwork.description || `${artwork.title} - Artivoya 컬러링`,
     openGraph: {
       title: `${artwork.title} | Artivoya`,
-      description: artwork.description,
+      description: artwork.description || `${artwork.title} - Artivoya 컬러링`,
     },
   };
 }
 
 export default async function GalleryDetailPage({ params }) {
   const { slug } = await params;
-  const artwork = getGalleryBySlug(slug);
+  let artwork = getGalleryBySlug(slug);
+  let isDynamic = false;
+
+  // 정적 데이터에 없으면 Blob에서 동적 조회
+  if (!artwork) {
+    artwork = await getDynamicArtwork(slug);
+    isDynamic = true;
+  }
 
   if (!artwork) {
     notFound();
   }
 
   const seriesData = getSeriesById(artwork.series);
-  const relatedArtworks = getGalleryBySeries(artwork.series).filter(
-    (item) => item.id !== artwork.id
-  );
+  
+  // 관련 작품: 정적 데이터에서만
+  const relatedArtworks = isDynamic 
+    ? [] 
+    : getGalleryBySeries(artwork.series).filter((item) => item.id !== artwork.id);
 
   return (
     <div className="artwork-detail">
@@ -47,13 +74,21 @@ export default async function GalleryDetailPage({ params }) {
           {/* Image */}
           <div className="artwork-image-wrapper">
             {artwork.image ? (
-              <Image
-                src={artwork.image}
-                alt={artwork.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                style={{ objectFit: 'contain', background: '#f8f8f8' }}
-              />
+              isDynamic ? (
+                <img
+                  src={artwork.image}
+                  alt={artwork.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#f8f8f8' }}
+                />
+              ) : (
+                <Image
+                  src={artwork.image}
+                  alt={artwork.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  style={{ objectFit: 'contain', background: '#f8f8f8' }}
+                />
+              )
             ) : (
               <div
                 style={{
@@ -84,7 +119,7 @@ export default async function GalleryDetailPage({ params }) {
             )}
 
             <h1>{artwork.title}</h1>
-            <p>{artwork.description}</p>
+            {artwork.description && <p>{artwork.description}</p>}
 
             <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
               {seriesData && (
