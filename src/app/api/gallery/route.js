@@ -31,17 +31,19 @@ export async function GET(request) {
         const parts = blob.pathname.split('/');
         const filename = parts[parts.length - 1];
         const blobSeries = parts.length >= 3 ? parts[1] : 'unknown';
-        const title = filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        const rawSlug = filename.replace(/\.[^/.]+$/, '');
+        const title = rawSlug.replace(/[-_]/g, ' ').normalize('NFC');
+        const slug = rawSlug.normalize('NFC');
 
         return {
           id: `blob-${blobSeries}-${filename}`,
-          slug: filename.replace(/\.[^/.]+$/, ''),
-          title: title,
+          slug,
+          title,
           titleEn: title,
           series: blobSeries,
           image: blob.url,
           description: '',
-          featured: true, // Blob에 업로드된 이미지는 모두 표시
+          featured: true,
           size: blob.size,
           uploadedAt: blob.uploadedAt,
         };
