@@ -23,11 +23,13 @@ function HighlightOverlay({ imageUrl, highlightColor, containerRef }) {
     if (!canvas || !container) return;
 
     const rect = container.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
     canvas.width = rect.width;
     canvas.height = rect.height;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    if (!highlightColor || !img) {
+    if (!highlightColor || !img || img.width === 0 || img.height === 0) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
