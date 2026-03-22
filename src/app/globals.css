@@ -862,6 +862,89 @@ p {
   margin-bottom: var(--space-2xl);
 }
 
+/* --- Color Palette --- */
+.color-palette {
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--color-border-light);
+}
+.color-palette-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  color: var(--color-text);
+}
+.color-palette-loading {
+  color: rgba(0,0,0,0.35);
+  font-size: 0.9rem;
+}
+.color-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.color-chip {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 2px solid rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 0;
+}
+.color-chip:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.color-chip.active {
+  border-color: var(--color-text);
+  transform: scale(1.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+.color-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+.color-detail-swatch {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.color-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.color-detail-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+.color-detail-hex {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.85rem;
+  color: rgba(0,0,0,0.5);
+}
+.color-detail-rgb {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.8rem;
+  color: rgba(0,0,0,0.35);
+}
+.color-palette-hint {
+  margin-top: var(--space-md);
+  font-size: 0.8rem;
+  color: rgba(0,0,0,0.35);
+}
+
 /* --- About Page --- */
 .about-hero {
   padding: calc(var(--header-height) + var(--space-4xl)) 0 var(--space-4xl);

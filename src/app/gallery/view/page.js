@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import ColorPalette from '@/components/ColorPalette';
 
 const SERIES_MAP = {
   'robot': { name: '로봇 시리즈', slug: 'robot-series', color: '#FF6B35' },
@@ -115,6 +116,8 @@ function GalleryViewContent() {
                 ▶ 영상 보기
               </a>
             </div>
+
+            {artwork.image && <ColorPalette imageUrl={artwork.image} />}
           </div>
         </div>
       </div>

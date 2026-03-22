@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import GalleryGrid from '@/components/GalleryGrid';
 import FluentEmoji from '@/components/FluentEmoji';
+import ColorPalette from '@/components/ColorPalette';
 import { galleryItems, getGalleryBySlug, getGalleryBySeries } from '@/data/gallery';
 import { getSeriesById } from '@/data/series';
 import { notFound } from 'next/navigation';
@@ -103,6 +104,8 @@ export default async function GalleryDetailPage({ params }) {
                 ▶ 영상 보기
               </a>
             </div>
+
+            {artwork.image && <ColorPalette imageUrl={artwork.image} />}
           </div>
         </div>
 
