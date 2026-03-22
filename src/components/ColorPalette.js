@@ -188,22 +188,26 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
       {/* AI 채색 분석 */}
       {(aiAnalysis || aiLoading) && (
         <div className="ai-analysis">
-          <h3 className="ai-analysis-title">🤖 AI 부위별 채색 가이드</h3>
+          <h3 className="step-guide-title">🤖 AI 부위별 채색 가이드</h3>
           {aiLoading ? (
             <div className="ai-analysis-loading">
               <span className="ai-spinner" />
               AI가 이미지를 분석하고 있어요...
             </div>
           ) : aiAnalysis && (
-            <div className="ai-analysis-list">
+            <div className="step-guide-steps">
               {aiAnalysis.map((item, i) => (
-                <div key={i} className="ai-part-card">
-                  <div className="ai-part-header">
-                    <span className="ai-part-number">{i + 1}</span>
-                    <span className="ai-part-name">{item.part}</span>
+                <div key={i} className="step-card">
+                  <div className="step-card-header">
+                    <span className="step-number">STEP {i + 1}</span>
+                    <span className="step-title">{item.part}</span>
                   </div>
-                  <div className="ai-part-colors">{item.colors}</div>
-                  <div className="ai-part-tip">💡 {item.tip}</div>
+                  <p className="step-desc" style={{ marginBottom: '8px', color: 'rgba(0,0,0,0.85)', fontWeight: 500 }}>
+                    사용 색상: {item.colors}
+                  </p>
+                  <p className="step-desc">
+                    💡 {item.tip}
+                  </p>
                 </div>
               ))}
             </div>
