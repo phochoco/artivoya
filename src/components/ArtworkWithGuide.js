@@ -55,12 +55,13 @@ function HighlightOverlay({ imageUrl, highlightColor, containerRef }) {
         (data[i] - tr) ** 2 + (data[i+1] - tg) ** 2 + (data[i+2] - tb) ** 2
       );
       if (dist > threshold) {
-        // 비선택 영역: 흑백(Grayscale)으로 전환 및 반투명(투명도 약간 조절)하여 채색 맥락 보존
+        // 비선택 영역: 흑백(Grayscale)으로 워시아웃(Wash-out)하여 타블렛 스케치처럼 매우 연하게 날림
+        // 어두운 색상(갈색 등)도 눈에 띄도록 대비를 극대화
         const luma = Math.round(data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
-        // 그려질 캔버스는 원본 위에 덮이는 마스크이므로 완전 불투명하게 흑백 픽셀로 덮음
-        data[i] = Math.min(255, luma + 30); // 살짝 밝게 세탁
-        data[i+1] = Math.min(255, luma + 30);
-        data[i+2] = Math.min(255, luma + 30);
+        const washedLuma = Math.min(255, 180 + Math.floor(luma * 0.3));
+        data[i] = washedLuma; 
+        data[i+1] = washedLuma;
+        data[i+2] = washedLuma;
         data[i+3] = 255;
       } else {
         // 선택 영역: 마스크를 투명(0)하게 뚫어서 밑의 원본 이미지 (컬러)가 그대로 보이게 함

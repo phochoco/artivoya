@@ -162,7 +162,8 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
   }, [slug, imageUrl]);
 
   const handleColorClick = useCallback((index) => {
-    const newIndex = selectedColor === index ? null : index;
+    // index가 null이면 전체 보기(선택 해제)
+    const newIndex = (index === null || selectedColor === index) ? null : index;
     setSelectedColor(newIndex);
     if (onHighlightColor) {
       onHighlightColor(newIndex !== null ? colors[newIndex] : null);
@@ -186,6 +187,18 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
       <h3 className="color-palette-title">🎨 사용된 색상</h3>
       <p className="color-palette-sub">색상을 탭하면 이미지에서 해당 색이 사용된 부분이 강조돼요</p>
       <div className="color-chips">
+        <button
+          className={`color-chip reset-chip ${selectedColor === null ? 'active' : ''}`}
+          onClick={() => handleColorClick(null)}
+          title="전체 보기"
+          style={{ 
+            background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', 
+            border: '2px solid #fff', 
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
+          }}
+        >
+          <span className="color-chip-inner" style={{ background: '#fff', width: '60%', height: '60%', margin: '20%', borderRadius: '50%' }} />
+        </button>
         {colors.map((c, i) => (
           <button
             key={i}

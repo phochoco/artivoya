@@ -59,11 +59,12 @@ function HighlightOverlay({ imageUrl, highlightColor, containerRef }) {
       if (data[i+3] < 10) continue;
       const dist = Math.sqrt((data[i]-tr)**2 + (data[i+1]-tg)**2 + (data[i+2]-tb)**2);
       if (dist > 55) {
-        // 비선택 영역: 흑백(Grayscale) 전환 마스크
+        // 비선택 영역: 매우 연한 흑백 스케치(워시아웃)로 전환
         const luma = Math.round(data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
-        data[i] = Math.min(255, luma + 30);
-        data[i+1] = Math.min(255, luma + 30);
-        data[i+2] = Math.min(255, luma + 30);
+        const washedLuma = Math.min(255, 180 + Math.floor(luma * 0.3));
+        data[i] = washedLuma;
+        data[i+1] = washedLuma;
+        data[i+2] = washedLuma;
         data[i+3] = 255;
       } else {
         // 선택 영역: 투명 뚫기
