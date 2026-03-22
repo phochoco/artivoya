@@ -75,26 +75,13 @@ function deduplicateColors(colors, threshold=30) {
   return result;
 }
 
-// ── 단계별 채색 가이드 생성 ──
-function generateStepGuide(colors) {
-  if (colors.length === 0) return [];
-  const light = colors.filter(c => rgbToHsl(c.r,c.g,c.b)[2] > 65);
-  const mid = colors.filter(c => { const l=rgbToHsl(c.r,c.g,c.b)[2]; return l>=30&&l<=65; });
-  const dark = colors.filter(c => rgbToHsl(c.r,c.g,c.b)[2] < 30);
-  const steps = [];
-  if (light.length > 0) steps.push({ step: 1, title: '배경 & 밝은 영역부터', desc: '가장 밝은 색으로 넓은 면적부터 가볍게 칠해주세요. 색연필은 살짝 눕혀서 부드럽게 칠하면 좋아요.', colors: light });
-  if (mid.length > 0) steps.push({ step: steps.length+1, title: '주요 색상 채우기', desc: '캐릭터와 주요 오브젝트에 중간 톤 색상을 채워주세요. 윤곽선 안쪽으로 한 방향으로 칠하면 깔끔해요.', colors: mid });
-  if (dark.length > 0) steps.push({ step: steps.length+1, title: '그림자 & 디테일', desc: '진한 색으로 그림자, 눈동자, 윤곽 등 세부 디테일을 마무리하세요. 힘을 주어 진하게 칠하면 입체감이 살아요.', colors: dark });
-  steps.push({ step: steps.length+1, title: '마무리 터치', desc: '색이 겹치는 경계 부분을 부드럽게 블렌딩하고, 하이라이트 부분은 빈 공간으로 남겨두면 빛 표현이 돼요.', colors: [] });
-  return steps;
-}
+// ── 단계별 채색 가이드 로직 삭제 (AI 가이드와 중복) ──
 
 // ── 컴포넌트 ──
 export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip, onHighlightColor }) {
   const [colors, setColors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState(null);
-  const [steps, setSteps] = useState([]);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(false);
@@ -106,7 +93,7 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
 
     getPixels(imageUrl)
       .then(pixels => {
-        if (pixels.length === 0) { setColors([]); setSteps([]); setLoading(false); return; }
+        if (pixels.length === 0) { setColors([]); setLoading(false); return; }
         let extracted = medianCut([...pixels], 4);
         extracted.sort((a, b) => b.count - a.count);
         extracted = deduplicateColors(extracted);
@@ -118,7 +105,6 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
         });
 
         setColors(palette);
-        setSteps(generateStepGuide(palette));
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -222,34 +208,6 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {/* 단계별 가이드 */}
-      {steps.length > 0 && (
-        <div className="step-guide">
-          <h3 className="step-guide-title">✏️ 채색 순서 가이드</h3>
-          <div className="step-guide-steps">
-            {steps.map((s) => (
-              <div key={s.step} className="step-card">
-                <div className="step-card-header">
-                  <span className="step-number">STEP {s.step}</span>
-                  <span className="step-title">{s.title}</span>
-                </div>
-                <p className="step-desc">{s.desc}</p>
-                {s.colors.length > 0 && (
-                  <div className="step-colors">
-                    {s.colors.map((c, i) => (
-                      <div key={i} className="step-color-item">
-                        <span className="step-color-dot" style={{ background: c.hex }} />
-                        <span className="step-color-name">{c.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </div>
