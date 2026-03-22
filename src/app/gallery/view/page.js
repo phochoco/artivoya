@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import ColorPalette from '@/components/ColorPalette';
-import ColorHighlight from '@/components/ColorHighlight';
 
 const SERIES_MAP = {
   'robot': { name: '로봇 시리즈', slug: 'robot-series', color: '#FF6B35' },
@@ -14,6 +13,70 @@ const SERIES_MAP = {
   'safari': { name: '사파리 시리즈', slug: 'safari-series', color: '#F39C12' },
 };
 
+// 인라인 하이라이트 오버레이
+function HighlightOverlay({ imageUrl, highlightColor, containerRef }) {
+  const canvasRef = useRef(null);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    if (!imageUrl) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { imgRef.current = img; };
+    img.src = imageUrl;
+  }, [imageUrl]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const img = imgRef.current;
+    const container = containerRef?.current;
+    if (!canvas || !container) return;
+
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (!highlightColor || !img) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+
+    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+    const w = img.width * scale, h = img.height * scale;
+    const x = (canvas.width - w) / 2, y = (canvas.height - h) / 2;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, x, y, w, h);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const tr = highlightColor.r, tg = highlightColor.g, tb = highlightColor.b;
+
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i+3] < 10) continue;
+      const dist = Math.sqrt((data[i]-tr)**2 + (data[i+1]-tg)**2 + (data[i+2]-tb)**2);
+      if (dist > 55) {
+        data[i] = Math.round(data[i]*0.3);
+        data[i+1] = Math.round(data[i+1]*0.3);
+        data[i+2] = Math.round(data[i+2]*0.3);
+        data[i+3] = 180;
+      } else {
+        data[i+3] = 0;
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }, [highlightColor, imageUrl]);
+
+  return (
+    <canvas ref={canvasRef} style={{
+      position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+      pointerEvents: 'none', opacity: highlightColor ? 1 : 0,
+      transition: 'opacity 0.3s ease', borderRadius: 'inherit', zIndex: 2,
+    }} />
+  );
+}
+
 function GalleryViewContent() {
   const searchParams = useSearchParams();
   const slug = searchParams.get('slug');
@@ -21,6 +84,7 @@ function GalleryViewContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [highlightColor, setHighlightColor] = useState(null);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
     if (!slug) { setError(true); setLoading(false); return; }
@@ -64,22 +128,16 @@ function GalleryViewContent() {
       <div className="container">
         <div className="artwork-detail-grid">
           {/* 이미지 + 하이라이트 */}
-          <div className="artwork-image-wrapper">
-            <ColorHighlight imageUrl={artwork.image} highlightColor={highlightColor}>
-              <img
-                src={artwork.image}
-                alt={artwork.title}
-                style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#f8f8f8' }}
-              />
-            </ColorHighlight>
-          </div>
-
-          {/* 채색 가이드 (팔레트 + AI + 단계별) */}
-          <div className="artwork-info-with-guide">
-            <ColorPalette
+          <div className="artwork-image-wrapper" ref={wrapperRef}>
+            <img
+              src={artwork.image}
+              alt={artwork.title}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#f8f8f8' }}
+            />
+            <HighlightOverlay
               imageUrl={artwork.image}
-              slug={slug}
-              onHighlightColor={setHighlightColor}
+              highlightColor={highlightColor}
+              containerRef={wrapperRef}
             />
           </div>
 
@@ -103,6 +161,15 @@ function GalleryViewContent() {
               </a>
             </div>
           </div>
+
+          {/* 채색 가이드 */}
+          <div className="artwork-info-with-guide">
+            <ColorPalette
+              imageUrl={artwork.image}
+              slug={slug}
+              onHighlightColor={setHighlightColor}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -112,11 +179,9 @@ function GalleryViewContent() {
 export default function GalleryViewPage() {
   return (
     <Suspense fallback={
-      <div className="artwork-detail">
-        <div className="container" style={{ textAlign: 'center', padding: '8rem 2rem' }}>
-          <p style={{ color: 'rgba(0,0,0,0.4)' }}>불러오는 중...</p>
-        </div>
-      </div>
+      <div className="artwork-detail"><div className="container" style={{ textAlign: 'center', padding: '8rem 2rem' }}>
+        <p style={{ color: 'rgba(0,0,0,0.4)' }}>불러오는 중...</p>
+      </div></div>
     }>
       <GalleryViewContent />
     </Suspense>
