@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 // ── Median-cut 컬러 양자화 ──
 function getPixels(imageUrl) {
@@ -35,169 +35,69 @@ function medianCut(pixels, depth) {
   if (depth === 0 || pixels.length === 0) {
     if (pixels.length === 0) return [];
     const avg = [0, 0, 0];
-    for (const p of pixels) {
-      avg[0] += p[0]; avg[1] += p[1]; avg[2] += p[2];
-    }
-    return [{
-      color: [
-        Math.round(avg[0] / pixels.length),
-        Math.round(avg[1] / pixels.length),
-        Math.round(avg[2] / pixels.length),
-      ],
-      count: pixels.length,
-    }];
+    for (const p of pixels) { avg[0] += p[0]; avg[1] += p[1]; avg[2] += p[2]; }
+    return [{ color: [Math.round(avg[0]/pixels.length), Math.round(avg[1]/pixels.length), Math.round(avg[2]/pixels.length)], count: pixels.length }];
   }
-
-  let rMin = 255, rMax = 0, gMin = 255, gMax = 0, bMin = 255, bMax = 0;
-  for (const [r, g, b] of pixels) {
-    if (r < rMin) rMin = r; if (r > rMax) rMax = r;
-    if (g < gMin) gMin = g; if (g > gMax) gMax = g;
-    if (b < bMin) bMin = b; if (b > bMax) bMax = b;
-  }
-
-  const rRange = rMax - rMin;
-  const gRange = gMax - gMin;
-  const bRange = bMax - bMin;
-
-  let channel = 0;
-  if (gRange >= rRange && gRange >= bRange) channel = 1;
-  else if (bRange >= rRange && bRange >= gRange) channel = 2;
-
-  pixels.sort((a, b) => a[channel] - b[channel]);
-  const mid = Math.floor(pixels.length / 2);
-
-  return [
-    ...medianCut(pixels.slice(0, mid), depth - 1),
-    ...medianCut(pixels.slice(mid), depth - 1),
-  ];
+  let rMin=255,rMax=0,gMin=255,gMax=0,bMin=255,bMax=0;
+  for (const [r,g,b] of pixels) { if(r<rMin)rMin=r;if(r>rMax)rMax=r;if(g<gMin)gMin=g;if(g>gMax)gMax=g;if(b<bMin)bMin=b;if(b>bMax)bMax=b; }
+  const rR=rMax-rMin,gR=gMax-gMin,bR=bMax-bMin;
+  let ch=0; if(gR>=rR&&gR>=bR)ch=1; else if(bR>=rR&&bR>=gR)ch=2;
+  pixels.sort((a,b)=>a[ch]-b[ch]);
+  const mid=Math.floor(pixels.length/2);
+  return [...medianCut(pixels.slice(0,mid),depth-1),...medianCut(pixels.slice(mid),depth-1)];
 }
 
-function rgbToHex(r, g, b) {
-  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-}
+function rgbToHex(r,g,b) { return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
 
 function getColorName(r, g, b) {
-  const hsl = rgbToHsl(r, g, b);
-  const h = hsl[0], s = hsl[1], l = hsl[2];
-
+  const [h, s, l] = rgbToHsl(r, g, b);
   if (l < 15) return '검정';
   if (l > 90 && s < 10) return '흰색';
-  if (s < 12) {
-    if (l < 40) return '진한 회색';
-    if (l < 70) return '회색';
-    return '밝은 회색';
-  }
-
+  if (s < 12) { if (l<40) return '진한 회색'; if (l<70) return '회색'; return '밝은 회색'; }
   let name = '';
-  if (h < 15 || h >= 345) name = '빨강';
-  else if (h < 35) name = '주황';
-  else if (h < 55) name = '노랑';
-  else if (h < 80) name = '연두';
-  else if (h < 160) name = '초록';
-  else if (h < 195) name = '청록';
-  else if (h < 250) name = '파랑';
-  else if (h < 290) name = '보라';
-  else name = '분홍';
-
-  if (l < 35) return '진한 ' + name;
-  if (l > 70) return '밝은 ' + name;
-  return name;
+  if (h<15||h>=345) name='빨강'; else if(h<35)name='주황'; else if(h<55)name='노랑';
+  else if(h<80)name='연두'; else if(h<160)name='초록'; else if(h<195)name='청록';
+  else if(h<250)name='파랑'; else if(h<290)name='보라'; else name='분홍';
+  if (l<35) return '진한 '+name; if (l>70) return '밝은 '+name; return name;
 }
 
-function rgbToHsl(r, g, b) {
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h, s, l = (max + min) / 2;
-
-  if (max === min) {
-    h = s = 0;
-  } else {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-      case g: h = ((b - r) / d + 2) / 6; break;
-      case b: h = ((r - g) / d + 4) / 6; break;
-    }
-  }
-  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+function rgbToHsl(r,g,b) {
+  r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b); let h,s,l=(max+min)/2;
+  if(max===min){h=s=0}else{const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);
+  switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}
+  return [Math.round(h*360),Math.round(s*100),Math.round(l*100)];
 }
 
-function deduplicateColors(colors, threshold = 30) {
-  const result = [];
-  for (const c of colors) {
-    const isDupe = result.some(r => {
-      const dr = r.color[0] - c.color[0];
-      const dg = r.color[1] - c.color[1];
-      const db = r.color[2] - c.color[2];
-      return Math.sqrt(dr*dr + dg*dg + db*db) < threshold;
-    });
-    if (!isDupe) result.push(c);
-  }
+function deduplicateColors(colors, threshold=30) {
+  const result=[];
+  for(const c of colors){const isDupe=result.some(r=>{const dr=r.color[0]-c.color[0],dg=r.color[1]-c.color[1],db=r.color[2]-c.color[2];return Math.sqrt(dr*dr+dg*dg+db*db)<threshold;});if(!isDupe)result.push(c);}
   return result;
 }
 
 // ── 단계별 채색 가이드 생성 ──
 function generateStepGuide(colors) {
   if (colors.length === 0) return [];
-
-  // 밝기(lightness)로 분류
-  const light = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] > 65);
-  const mid = colors.filter(c => {
-    const l = rgbToHsl(c.r, c.g, c.b)[2];
-    return l >= 30 && l <= 65;
-  });
-  const dark = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] < 30);
-
+  const light = colors.filter(c => rgbToHsl(c.r,c.g,c.b)[2] > 65);
+  const mid = colors.filter(c => { const l=rgbToHsl(c.r,c.g,c.b)[2]; return l>=30&&l<=65; });
+  const dark = colors.filter(c => rgbToHsl(c.r,c.g,c.b)[2] < 30);
   const steps = [];
-
-  // Step 1: 밝은 색 — 배경/큰 영역
-  if (light.length > 0) {
-    steps.push({
-      step: 1,
-      title: '배경 & 밝은 영역부터',
-      desc: '가장 밝은 색으로 넓은 면적부터 가볍게 칠해주세요. 색연필은 살짝 눕혀서 부드럽게 칠하면 좋아요.',
-      colors: light,
-    });
-  }
-
-  // Step 2: 중간 톤 — 주요 캐릭터
-  if (mid.length > 0) {
-    steps.push({
-      step: steps.length + 1,
-      title: '주요 색상 채우기',
-      desc: '캐릭터와 주요 오브젝트에 중간 톤 색상을 채워주세요. 윤곽선 안쪽으로 한 방향으로 칠하면 깔끔해요.',
-      colors: mid,
-    });
-  }
-
-  // Step 3: 진한 색 — 그림자/디테일
-  if (dark.length > 0) {
-    steps.push({
-      step: steps.length + 1,
-      title: '그림자 & 디테일',
-      desc: '진한 색으로 그림자, 눈동자, 윤곽 등 세부 디테일을 마무리하세요. 힘을 주어 진하게 칠하면 입체감이 살아요.',
-      colors: dark,
-    });
-  }
-
-  // Step 4: 마무리 팁
-  steps.push({
-    step: steps.length + 1,
-    title: '마무리 터치',
-    desc: '색이 겹치는 경계 부분을 부드럽게 블렌딩하고, 하이라이트 부분은 빈 공간으로 남겨두면 빛 표현이 돼요.',
-    colors: [],
-  });
-
+  if (light.length > 0) steps.push({ step: 1, title: '배경 & 밝은 영역부터', desc: '가장 밝은 색으로 넓은 면적부터 가볍게 칠해주세요. 색연필은 살짝 눕혀서 부드럽게 칠하면 좋아요.', colors: light });
+  if (mid.length > 0) steps.push({ step: steps.length+1, title: '주요 색상 채우기', desc: '캐릭터와 주요 오브젝트에 중간 톤 색상을 채워주세요. 윤곽선 안쪽으로 한 방향으로 칠하면 깔끔해요.', colors: mid });
+  if (dark.length > 0) steps.push({ step: steps.length+1, title: '그림자 & 디테일', desc: '진한 색으로 그림자, 눈동자, 윤곽 등 세부 디테일을 마무리하세요. 힘을 주어 진하게 칠하면 입체감이 살아요.', colors: dark });
+  steps.push({ step: steps.length+1, title: '마무리 터치', desc: '색이 겹치는 경계 부분을 부드럽게 블렌딩하고, 하이라이트 부분은 빈 공간으로 남겨두면 빛 표현이 돼요.', colors: [] });
   return steps;
 }
 
 // ── 컴포넌트 ──
-export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
+export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip, onHighlightColor }) {
   const [colors, setColors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState(null);
   const [steps, setSteps] = useState([]);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(false);
 
   useEffect(() => {
     if (!imageUrl) return;
@@ -206,13 +106,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
 
     getPixels(imageUrl)
       .then(pixels => {
-        if (pixels.length === 0) {
-          setColors([]);
-          setSteps([]);
-          setLoading(false);
-          return;
-        }
-
+        if (pixels.length === 0) { setColors([]); setSteps([]); setLoading(false); return; }
         let extracted = medianCut([...pixels], 4);
         extracted.sort((a, b) => b.count - a.count);
         extracted = deduplicateColors(extracted);
@@ -220,13 +114,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
 
         const palette = extracted.map(({ color, count }) => {
           const [r, g, b] = color;
-          return {
-            hex: rgbToHex(r, g, b),
-            rgb: `${r}, ${g}, ${b}`,
-            name: getColorName(r, g, b),
-            r, g, b,
-            count,
-          };
+          return { hex: rgbToHex(r,g,b), rgb: `${r}, ${g}, ${b}`, name: getColorName(r,g,b), r, g, b, count };
         });
 
         setColors(palette);
@@ -235,6 +123,33 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
       })
       .catch(() => setLoading(false));
   }, [imageUrl, maxColors]);
+
+  // AI 분석 로드
+  useEffect(() => {
+    if (!slug || !imageUrl) return;
+    setAiLoading(true);
+    setAiError(false);
+
+    fetch(`/api/gallery/analyze?slug=${encodeURIComponent(slug)}&imageUrl=${encodeURIComponent(imageUrl)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.analysis) {
+          setAiAnalysis(data.analysis);
+        } else {
+          setAiError(true);
+        }
+        setAiLoading(false);
+      })
+      .catch(() => { setAiError(true); setAiLoading(false); });
+  }, [slug, imageUrl]);
+
+  const handleColorClick = useCallback((index) => {
+    const newIndex = selectedColor === index ? null : index;
+    setSelectedColor(newIndex);
+    if (onHighlightColor) {
+      onHighlightColor(newIndex !== null ? colors[newIndex] : null);
+    }
+  }, [selectedColor, colors, onHighlightColor]);
 
   if (loading) {
     return (
@@ -251,13 +166,14 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
     <div className="color-palette">
       {/* 컬러칩 */}
       <h3 className="color-palette-title">🎨 사용된 색상</h3>
+      <p className="color-palette-sub">색상을 탭하면 이미지에서 해당 색이 사용된 부분이 강조돼요</p>
       <div className="color-chips">
         {colors.map((c, i) => (
           <button
             key={i}
             className={`color-chip ${selectedColor === i ? 'active' : ''}`}
             style={{ background: c.hex }}
-            onClick={() => setSelectedColor(selectedColor === i ? null : i)}
+            onClick={() => handleColorClick(i)}
             title={c.name}
           >
             <span className="color-chip-inner" />
@@ -267,10 +183,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
 
       {selectedColor !== null && colors[selectedColor] && (
         <div className="color-detail">
-          <div
-            className="color-detail-swatch"
-            style={{ background: colors[selectedColor].hex }}
-          />
+          <div className="color-detail-swatch" style={{ background: colors[selectedColor].hex }} />
           <div className="color-detail-info">
             <span className="color-detail-name">{colors[selectedColor].name}</span>
             <span className="color-detail-hex">{colors[selectedColor].hex.toUpperCase()}</span>
@@ -283,6 +196,32 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
       {customTip && (
         <div className="coloring-tips" style={{ marginTop: 'var(--space-lg)' }}>
           <p style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.65)', margin: 0 }}>{customTip}</p>
+        </div>
+      )}
+
+      {/* AI 채색 분석 */}
+      {(aiAnalysis || aiLoading) && (
+        <div className="ai-analysis">
+          <h3 className="ai-analysis-title">🤖 AI 부위별 채색 가이드</h3>
+          {aiLoading ? (
+            <div className="ai-analysis-loading">
+              <span className="ai-spinner" />
+              AI가 이미지를 분석하고 있어요...
+            </div>
+          ) : aiAnalysis && (
+            <div className="ai-analysis-list">
+              {aiAnalysis.map((item, i) => (
+                <div key={i} className="ai-part-card">
+                  <div className="ai-part-header">
+                    <span className="ai-part-number">{i + 1}</span>
+                    <span className="ai-part-name">{item.part}</span>
+                  </div>
+                  <div className="ai-part-colors">{item.colors}</div>
+                  <div className="ai-part-tip">💡 {item.tip}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -302,10 +241,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
                   <div className="step-colors">
                     {s.colors.map((c, i) => (
                       <div key={i} className="step-color-item">
-                        <span
-                          className="step-color-dot"
-                          style={{ background: c.hex }}
-                        />
+                        <span className="step-color-dot" style={{ background: c.hex }} />
                         <span className="step-color-name">{c.name}</span>
                       </div>
                     ))}

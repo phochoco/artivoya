@@ -819,9 +819,25 @@ p {
 
 .artwork-detail-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: var(--space-3xl);
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-2xl) var(--space-3xl);
   align-items: start;
+}
+.artwork-image-wrapper {
+  grid-row: 1 / -1;
+}
+.artwork-info-with-guide {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: var(--space-sm);
+}
+.artwork-info-with-guide::-webkit-scrollbar {
+  width: 4px;
+}
+.artwork-info-with-guide::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
 }
 
 .artwork-image-wrapper {
@@ -941,6 +957,89 @@ p {
   font-size: 0.8rem;
   color: rgba(0,0,0,0.35);
 }
+.color-palette-sub {
+  font-size: 0.8rem;
+  color: rgba(0,0,0,0.35);
+  margin-bottom: var(--space-md);
+}
+
+/* --- AI Coloring Analysis --- */
+.ai-analysis {
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--color-border-light);
+}
+.ai-analysis-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-lg);
+}
+.ai-analysis-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.88rem;
+  color: rgba(0,0,0,0.4);
+  padding: var(--space-lg);
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-md);
+}
+.ai-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-top-color: var(--color-text);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-analysis-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.ai-part-card {
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, #f0f7ff, #e8f4fd);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 120, 215, 0.1);
+}
+.ai-part-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: 6px;
+}
+.ai-part-number {
+  width: 22px;
+  height: 22px;
+  background: #0078D7;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.ai-part-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+.ai-part-colors {
+  font-size: 0.85rem;
+  color: rgba(0,0,0,0.6);
+  margin-bottom: 4px;
+}
+.ai-part-tip {
+  font-size: 0.82rem;
+  color: rgba(0,0,0,0.5);
+  line-height: 1.5;
+}
+
 /* --- Step-by-Step Coloring Guide --- */
 .step-guide {
   margin-top: var(--space-2xl);
