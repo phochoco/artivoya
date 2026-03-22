@@ -137,61 +137,59 @@ function deduplicateColors(colors, threshold = 30) {
   return result;
 }
 
-// ── 자동 채색 팁 생성 ──
-function generateColoringTips(colors, artworkTitle = '') {
+// ── 단계별 채색 가이드 생성 ──
+function generateStepGuide(colors) {
   if (colors.length === 0) return [];
 
-  const tips = [];
-  
-  // 색상 그룹 분류
-  const warmColors = colors.filter(c => {
-    const hsl = rgbToHsl(c.r, c.g, c.b);
-    return hsl[1] > 15 && (hsl[0] < 60 || hsl[0] >= 330);
+  // 밝기(lightness)로 분류
+  const light = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] > 65);
+  const mid = colors.filter(c => {
+    const l = rgbToHsl(c.r, c.g, c.b)[2];
+    return l >= 30 && l <= 65;
   });
-  const coolColors = colors.filter(c => {
-    const hsl = rgbToHsl(c.r, c.g, c.b);
-    return hsl[1] > 15 && hsl[0] >= 160 && hsl[0] < 290;
+  const dark = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] < 30);
+
+  const steps = [];
+
+  // Step 1: 밝은 색 — 배경/큰 영역
+  if (light.length > 0) {
+    steps.push({
+      step: 1,
+      title: '배경 & 밝은 영역부터',
+      desc: '가장 밝은 색으로 넓은 면적부터 가볍게 칠해주세요. 색연필은 살짝 눕혀서 부드럽게 칠하면 좋아요.',
+      colors: light,
+    });
+  }
+
+  // Step 2: 중간 톤 — 주요 캐릭터
+  if (mid.length > 0) {
+    steps.push({
+      step: steps.length + 1,
+      title: '주요 색상 채우기',
+      desc: '캐릭터와 주요 오브젝트에 중간 톤 색상을 채워주세요. 윤곽선 안쪽으로 한 방향으로 칠하면 깔끔해요.',
+      colors: mid,
+    });
+  }
+
+  // Step 3: 진한 색 — 그림자/디테일
+  if (dark.length > 0) {
+    steps.push({
+      step: steps.length + 1,
+      title: '그림자 & 디테일',
+      desc: '진한 색으로 그림자, 눈동자, 윤곽 등 세부 디테일을 마무리하세요. 힘을 주어 진하게 칠하면 입체감이 살아요.',
+      colors: dark,
+    });
+  }
+
+  // Step 4: 마무리 팁
+  steps.push({
+    step: steps.length + 1,
+    title: '마무리 터치',
+    desc: '색이 겹치는 경계 부분을 부드럽게 블렌딩하고, 하이라이트 부분은 빈 공간으로 남겨두면 빛 표현이 돼요.',
+    colors: [],
   });
-  const neutralColors = colors.filter(c => {
-    const hsl = rgbToHsl(c.r, c.g, c.b);
-    return hsl[1] <= 15;
-  });
 
-  // 전체 색상 수에 따른 팁
-  if (colors.length <= 5) {
-    tips.push('적은 수의 색상을 사용한 작품이에요. 각 색을 정확히 구분해서 칠해보세요.');
-  } else if (colors.length >= 8) {
-    tips.push('다양한 색상이 사용된 작품이에요. 큰 영역부터 먼저 칠하고, 세부 색상은 나중에 추가하세요.');
-  }
-
-  // 따뜻한/차가운 톤 팁
-  if (warmColors.length > 0 && coolColors.length > 0) {
-    tips.push(`따뜻한 색(${warmColors.slice(0, 2).map(c => c.name).join(', ')})과 차가운 색(${coolColors.slice(0, 2).map(c => c.name).join(', ')})이 조화를 이루고 있어요.`);
-  } else if (warmColors.length > coolColors.length) {
-    tips.push('따뜻한 색 위주의 작품이에요. 따뜻하고 활기찬 느낌을 살려보세요.');
-  } else if (coolColors.length > warmColors.length) {
-    tips.push('시원한 색 위주의 작품이에요. 차분하고 깨끗한 느낌으로 채색해보세요.');
-  }
-
-  // 명도 팁
-  const darkColors = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] < 35);
-  const lightColors = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] > 65);
-  if (darkColors.length > 0 && lightColors.length > 0) {
-    tips.push('밝은 색부터 먼저 칠하고, 진한 색은 나중에 덧칠하면 더 깔끔해요.');
-  }
-
-  // 채도 팁
-  const vivid = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[1] > 60);
-  if (vivid.length >= 3) {
-    tips.push('선명한 색이 많아요. 색연필은 힘을 주어 진하게, 수채화는 물을 적게 사용하면 선명해져요.');
-  }
-
-  // 중성색 팁
-  if (neutralColors.length >= 2) {
-    tips.push('회색/무채색 영역은 너무 진하지 않게, 연필로 살짝 터치하듯 칠하면 자연스러워요.');
-  }
-
-  return tips.slice(0, 3); // 최대 3개
+  return steps;
 }
 
 // ── 컴포넌트 ──
@@ -199,7 +197,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
   const [colors, setColors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState(null);
-  const [tips, setTips] = useState([]);
+  const [steps, setSteps] = useState([]);
 
   useEffect(() => {
     if (!imageUrl) return;
@@ -210,7 +208,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
       .then(pixels => {
         if (pixels.length === 0) {
           setColors([]);
-          setTips([]);
+          setSteps([]);
           setLoading(false);
           return;
         }
@@ -232,7 +230,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
         });
 
         setColors(palette);
-        setTips(generateColoringTips(palette));
+        setSteps(generateStepGuide(palette));
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -249,11 +247,9 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
 
   if (colors.length === 0) return null;
 
-  // 수동 팁이 있으면 우선, 없으면 자동 팁
-  const displayTips = customTip ? [customTip] : tips;
-
   return (
     <div className="color-palette">
+      {/* 컬러칩 */}
       <h3 className="color-palette-title">🎨 사용된 색상</h3>
       <div className="color-chips">
         {colors.map((c, i) => (
@@ -283,14 +279,41 @@ export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
         </div>
       )}
 
-      {displayTips.length > 0 && (
-        <div className="coloring-tips">
-          <h4 className="coloring-tips-title">💡 채색 팁</h4>
-          <ul className="coloring-tips-list">
-            {displayTips.map((tip, i) => (
-              <li key={i}>{tip}</li>
+      {/* 관리자 수동 팁 */}
+      {customTip && (
+        <div className="coloring-tips" style={{ marginTop: 'var(--space-lg)' }}>
+          <p style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.65)', margin: 0 }}>{customTip}</p>
+        </div>
+      )}
+
+      {/* 단계별 가이드 */}
+      {steps.length > 0 && (
+        <div className="step-guide">
+          <h3 className="step-guide-title">✏️ 채색 순서 가이드</h3>
+          <div className="step-guide-steps">
+            {steps.map((s) => (
+              <div key={s.step} className="step-card">
+                <div className="step-card-header">
+                  <span className="step-number">STEP {s.step}</span>
+                  <span className="step-title">{s.title}</span>
+                </div>
+                <p className="step-desc">{s.desc}</p>
+                {s.colors.length > 0 && (
+                  <div className="step-colors">
+                    {s.colors.map((c, i) => (
+                      <div key={i} className="step-color-item">
+                        <span
+                          className="step-color-dot"
+                          style={{ background: c.hex }}
+                        />
+                        <span className="step-color-name">{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>
