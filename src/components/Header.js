@@ -1,12 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { series } from '@/data/series';
 import FluentEmoji from '@/components/FluentEmoji';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehavior = 'none'; // iOS 바운스 방지
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+    }
+  }, [mobileOpen]);
 
   const toggleMobile = () => setMobileOpen(!mobileOpen);
   const closeMobile = () => setMobileOpen(false);
@@ -15,7 +25,7 @@ export default function Header() {
     <header className="header">
       <div className="header-inner">
         <Link href="/" className="header-logo" onClick={closeMobile}>
-          Artivoya
+          <img src="/images/logo.png" alt="Artivoya" style={{ height: '36px', width: 'auto', display: 'block' }} />
         </Link>
 
         <nav className="header-nav">

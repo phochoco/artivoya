@@ -233,7 +233,10 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
       {/* AI 채색 분석 */}
       {(aiAnalysis || aiLoading) && (
         <div className="ai-analysis">
-          <h3 className="step-guide-title">🤖 AI 부위별 채색 가이드</h3>
+          <h3 className="step-guide-title">
+            <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Robot/3D/robot_3d.png" alt="🤖" style={{ width: '28px', height: '28px', verticalAlign: 'middle', marginRight: '6px' }} />
+            AI 부위별 채색 가이드
+          </h3>
           {aiLoading ? (
             <div className="ai-analysis-loading">
               <span className="ai-spinner" />
@@ -251,7 +254,8 @@ export default function ColorPalette({ imageUrl, slug, maxColors = 10, customTip
                     사용 색상: {item.colors}
                   </p>
                   <p className="step-desc">
-                    💡 {item.tip}
+                    <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png" alt="💡" style={{ width: '20px', height: '20px', verticalAlign: 'middle', marginRight: '4px' }} />
+                    {item.tip}
                   </p>
                 </div>
               ))}
