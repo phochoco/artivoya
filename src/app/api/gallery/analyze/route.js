@@ -117,7 +117,13 @@ export async function GET(request) {
 
   // 2. Gemini 분석
   try {
-    const analysis = await analyzeWithGemini(decodeURIComponent(imageUrl));
+    let fullImageUrl = decodeURIComponent(imageUrl);
+    // 상대 경로를 절대 URL로 변환
+    if (fullImageUrl.startsWith('/')) {
+      const origin = new URL(request.url).origin;
+      fullImageUrl = `${origin}${fullImageUrl}`;
+    }
+    const analysis = await analyzeWithGemini(fullImageUrl);
     
     // 3. 캐싱
     await cacheAnalysis(slug, analysis);
