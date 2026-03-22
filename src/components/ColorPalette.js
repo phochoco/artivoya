@@ -49,25 +49,57 @@ function medianCut(pixels, depth) {
 
 function rgbToHex(r,g,b) { return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
 
+const COLOR_DICTIONARY = [
+  { name: '빨간색', rgb: [219, 36, 40] },
+  { name: '다홍색', rgb: [239, 74, 36] },
+  { name: '주황색', rgb: [243, 112, 33] },
+  { name: '귤색', rgb: [248, 149, 29] },
+  { name: '살구색', rgb: [253, 206, 172] },
+  { name: '노란색', rgb: [255, 221, 0] },
+  { name: '개나리색', rgb: [250, 192, 15] },
+  { name: '황토색', rgb: [198, 156, 109] },
+  { name: '밝은 갈색', rgb: [169, 109, 74] },
+  { name: '갈색', rgb: [120, 63, 4] },
+  { name: '고동색', rgb: [62, 39, 35] },
+  { name: '밝은 연두', rgb: [181, 211, 51] },
+  { name: '연두색', rgb: [141, 198, 63] },
+  { name: '초록색', rgb: [0, 148, 68] },
+  { name: '진초록', rgb: [0, 104, 56] },
+  { name: '청록색', rgb: [0, 169, 157] },
+  { name: '하늘색', rgb: [135, 206, 235] },
+  { name: '밝은 파랑', rgb: [41, 171, 226] },
+  { name: '파란색', rgb: [0, 113, 188] },
+  { name: '바다색(군청)', rgb: [0, 84, 166] },
+  { name: '남색', rgb: [27, 20, 100] },
+  { name: '연보라', rgb: [185, 153, 204] },
+  { name: '보라색', rgb: [102, 45, 145] },
+  { name: '자주색', rgb: [158, 0, 93] },
+  { name: '연분홍', rgb: [245, 195, 203] },
+  { name: '분홍색', rgb: [236, 0, 140] },
+  { name: '흰색', rgb: [245, 245, 245] },
+  { name: '밝은 회색', rgb: [204, 204, 204] },
+  { name: '회색', rgb: [128, 128, 128] },
+  { name: '검은색', rgb: [30, 30, 30] }
+];
+
 function getColorName(r, g, b) {
-  const [h, s, l] = rgbToHsl(r, g, b);
-  if (l < 15) return '검정';
-  if (l > 90 && s < 10) return '흰색';
-  if (s < 12) { if (l<40) return '진한 회색'; if (l<70) return '회색'; return '밝은 회색'; }
-  let name = '';
-  if (h<15||h>=345) name='빨강'; else if(h<35)name='주황'; else if(h<55)name='노랑';
-  else if(h<80)name='연두'; else if(h<160)name='초록'; else if(h<195)name='청록';
-  else if(h<250)name='파랑'; else if(h<290)name='보라'; else name='분홍';
-  if (l<35) return '진한 '+name; if (l>70) return '밝은 '+name; return name;
+  let minDistance = Infinity;
+  let closestName = '알 수 없음';
+  
+  for (const color of COLOR_DICTIONARY) {
+    const dr = r - color.rgb[0];
+    const dg = g - color.rgb[1];
+    const db = b - color.rgb[2];
+    const distance = Math.sqrt(dr*dr + dg*dg + db*db);
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestName = color.name;
+    }
+  }
+  return closestName;
 }
 
-function rgbToHsl(r,g,b) {
-  r/=255;g/=255;b/=255;
-  const max=Math.max(r,g,b),min=Math.min(r,g,b); let h,s,l=(max+min)/2;
-  if(max===min){h=s=0}else{const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);
-  switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}
-  return [Math.round(h*360),Math.round(s*100),Math.round(l*100)];
-}
+
 
 function deduplicateColors(colors, threshold=30) {
   const result=[];
