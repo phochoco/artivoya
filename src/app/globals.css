@@ -829,7 +829,9 @@ p {
   overflow: hidden;
   box-shadow: var(--shadow-lg);
   background: var(--color-bg-alt);
-  aspect-ratio: 1;
+  position: relative;
+  aspect-ratio: 3/4;
+  max-height: 600px;
 }
 .artwork-image-wrapper img {
   width: 100%;
@@ -939,10 +941,40 @@ p {
   font-size: 0.8rem;
   color: rgba(0,0,0,0.35);
 }
-.color-palette-hint {
-  margin-top: var(--space-md);
-  font-size: 0.8rem;
-  color: rgba(0,0,0,0.35);
+.coloring-tips {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, #FFF9E6, #FFF3CC);
+  border-radius: var(--radius-md);
+  border: 1px solid #F5E6A3;
+}
+.coloring-tips-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+.coloring-tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.coloring-tips-list li {
+  font-size: 0.88rem;
+  color: rgba(0,0,0,0.65);
+  line-height: 1.5;
+  padding-left: 1.2em;
+  position: relative;
+}
+.coloring-tips-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #E8A317;
+  font-weight: bold;
 }
 
 /* --- About Page --- */

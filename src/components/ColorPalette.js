@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 // ── Median-cut 컬러 양자화 ──
 function getPixels(imageUrl) {
@@ -9,7 +9,6 @@ function getPixels(imageUrl) {
     img.crossOrigin = 'anonymous';
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // 성능을 위해 축소 샘플링
       const scale = Math.min(1, 150 / Math.max(img.width, img.height));
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
@@ -20,7 +19,6 @@ function getPixels(imageUrl) {
       const pixels = [];
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
-        // 투명/거의 흰색/거의 검정 제외
         if (a < 128) continue;
         if (r > 240 && g > 240 && b > 240) continue;
         if (r < 15 && g < 15 && b < 15) continue;
@@ -40,7 +38,7 @@ function medianCut(pixels, depth) {
     for (const p of pixels) {
       avg[0] += p[0]; avg[1] += p[1]; avg[2] += p[2];
     }
-    return [{ 
+    return [{
       color: [
         Math.round(avg[0] / pixels.length),
         Math.round(avg[1] / pixels.length),
@@ -50,7 +48,6 @@ function medianCut(pixels, depth) {
     }];
   }
 
-  // 각 채널의 범위 계산
   let rMin = 255, rMax = 0, gMin = 255, gMax = 0, bMin = 255, bMax = 0;
   for (const [r, g, b] of pixels) {
     if (r < rMin) rMin = r; if (r > rMax) rMax = r;
@@ -62,7 +59,6 @@ function medianCut(pixels, depth) {
   const gRange = gMax - gMin;
   const bRange = bMax - bMin;
 
-  // 가장 큰 범위의 채널로 정렬 후 분할
   let channel = 0;
   if (gRange >= rRange && gRange >= bRange) channel = 1;
   else if (bRange >= rRange && bRange >= gRange) channel = 2;
@@ -80,7 +76,6 @@ function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
-// 색상 이름 근사값
 function getColorName(r, g, b) {
   const hsl = rgbToHsl(r, g, b);
   const h = hsl[0], s = hsl[1], l = hsl[2];
@@ -128,7 +123,6 @@ function rgbToHsl(r, g, b) {
   return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
 }
 
-// 비슷한 색 제거
 function deduplicateColors(colors, threshold = 30) {
   const result = [];
   for (const c of colors) {
@@ -143,11 +137,69 @@ function deduplicateColors(colors, threshold = 30) {
   return result;
 }
 
+// ── 자동 채색 팁 생성 ──
+function generateColoringTips(colors, artworkTitle = '') {
+  if (colors.length === 0) return [];
+
+  const tips = [];
+  
+  // 색상 그룹 분류
+  const warmColors = colors.filter(c => {
+    const hsl = rgbToHsl(c.r, c.g, c.b);
+    return hsl[1] > 15 && (hsl[0] < 60 || hsl[0] >= 330);
+  });
+  const coolColors = colors.filter(c => {
+    const hsl = rgbToHsl(c.r, c.g, c.b);
+    return hsl[1] > 15 && hsl[0] >= 160 && hsl[0] < 290;
+  });
+  const neutralColors = colors.filter(c => {
+    const hsl = rgbToHsl(c.r, c.g, c.b);
+    return hsl[1] <= 15;
+  });
+
+  // 전체 색상 수에 따른 팁
+  if (colors.length <= 5) {
+    tips.push('적은 수의 색상을 사용한 작품이에요. 각 색을 정확히 구분해서 칠해보세요.');
+  } else if (colors.length >= 8) {
+    tips.push('다양한 색상이 사용된 작품이에요. 큰 영역부터 먼저 칠하고, 세부 색상은 나중에 추가하세요.');
+  }
+
+  // 따뜻한/차가운 톤 팁
+  if (warmColors.length > 0 && coolColors.length > 0) {
+    tips.push(`따뜻한 색(${warmColors.slice(0, 2).map(c => c.name).join(', ')})과 차가운 색(${coolColors.slice(0, 2).map(c => c.name).join(', ')})이 조화를 이루고 있어요.`);
+  } else if (warmColors.length > coolColors.length) {
+    tips.push('따뜻한 색 위주의 작품이에요. 따뜻하고 활기찬 느낌을 살려보세요.');
+  } else if (coolColors.length > warmColors.length) {
+    tips.push('시원한 색 위주의 작품이에요. 차분하고 깨끗한 느낌으로 채색해보세요.');
+  }
+
+  // 명도 팁
+  const darkColors = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] < 35);
+  const lightColors = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[2] > 65);
+  if (darkColors.length > 0 && lightColors.length > 0) {
+    tips.push('밝은 색부터 먼저 칠하고, 진한 색은 나중에 덧칠하면 더 깔끔해요.');
+  }
+
+  // 채도 팁
+  const vivid = colors.filter(c => rgbToHsl(c.r, c.g, c.b)[1] > 60);
+  if (vivid.length >= 3) {
+    tips.push('선명한 색이 많아요. 색연필은 힘을 주어 진하게, 수채화는 물을 적게 사용하면 선명해져요.');
+  }
+
+  // 중성색 팁
+  if (neutralColors.length >= 2) {
+    tips.push('회색/무채색 영역은 너무 진하지 않게, 연필로 살짝 터치하듯 칠하면 자연스러워요.');
+  }
+
+  return tips.slice(0, 3); // 최대 3개
+}
+
 // ── 컴포넌트 ──
-export default function ColorPalette({ imageUrl, maxColors = 10 }) {
+export default function ColorPalette({ imageUrl, maxColors = 10, customTip }) {
   const [colors, setColors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState(null);
+  const [tips, setTips] = useState([]);
 
   useEffect(() => {
     if (!imageUrl) return;
@@ -158,11 +210,11 @@ export default function ColorPalette({ imageUrl, maxColors = 10 }) {
       .then(pixels => {
         if (pixels.length === 0) {
           setColors([]);
+          setTips([]);
           setLoading(false);
           return;
         }
 
-        // depth 4 → 최대 16색 추출 후 정리
         let extracted = medianCut([...pixels], 4);
         extracted.sort((a, b) => b.count - a.count);
         extracted = deduplicateColors(extracted);
@@ -180,6 +232,7 @@ export default function ColorPalette({ imageUrl, maxColors = 10 }) {
         });
 
         setColors(palette);
+        setTips(generateColoringTips(palette));
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -195,6 +248,9 @@ export default function ColorPalette({ imageUrl, maxColors = 10 }) {
   }
 
   if (colors.length === 0) return null;
+
+  // 수동 팁이 있으면 우선, 없으면 자동 팁
+  const displayTips = customTip ? [customTip] : tips;
 
   return (
     <div className="color-palette">
@@ -227,9 +283,16 @@ export default function ColorPalette({ imageUrl, maxColors = 10 }) {
         </div>
       )}
 
-      <p className="color-palette-hint">
-        💡 색상을 탭하면 색상명과 코드를 확인할 수 있어요
-      </p>
+      {displayTips.length > 0 && (
+        <div className="coloring-tips">
+          <h4 className="coloring-tips-title">💡 채색 팁</h4>
+          <ul className="coloring-tips-list">
+            {displayTips.map((tip, i) => (
+              <li key={i}>{tip}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
