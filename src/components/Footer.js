@@ -36,7 +36,7 @@ export default function Footer() {
         <span>© 2026 Artivoya. All rights reserved.</span>
         <div className="footer-social">
           <a
-            href="https://www.youtube.com/channel/UC063pY3PTB8q8FewhATKtPw"
+            href="https://www.youtube.com/@artivoya"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="YouTube"
