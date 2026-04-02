@@ -23,7 +23,7 @@ export default function ContactPage() {
                 <div className="contact-channel-icon"><FluentEmoji emoji="📧" size={28} /></div>
                 <div>
                   <h4>이메일</h4>
-                  <p>contact@artivoya.com</p>
+                  <p>artivoya@gmail.com</p>
                 </div>
               </div>
               <div className="contact-channel">
@@ -33,13 +33,13 @@ export default function ContactPage() {
                   <p>아티보야 공식 채널</p>
                 </div>
               </div>
-              <div className="contact-channel">
+              <a href="https://www.coupang.com/vp/products/9447118436?vendorItemId=95058356672" target="_blank" rel="noopener noreferrer" className="contact-channel" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div className="contact-channel-icon"><FluentEmoji emoji="🛒" size={28} /></div>
                 <div>
                   <h4>쿠팡</h4>
                   <p>Artivoya 공식 스토어</p>
                 </div>
-              </div>
+              </a>
             </div>
           </div>
 
